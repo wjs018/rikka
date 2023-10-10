@@ -120,6 +120,7 @@ class UnprocessedShow:
         show_type,
         has_source,
         is_nsfw,
+        is_airing,
     ):
         self.media_id = media_id
         self.id_mal = id_mal
@@ -129,3 +130,4 @@ class UnprocessedShow:
         self.show_type = str_to_showtype(show_type).value
         self.has_source = has_source
         self.is_nsfw = is_nsfw
+        self.is_airing = is_airing

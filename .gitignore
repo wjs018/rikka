@@ -10,6 +10,7 @@ logs/
 .vscode/
 .pylintrc
 *.sh
+*.yaml
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

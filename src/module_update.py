@@ -26,11 +26,24 @@ def main(config, db, *args, **kwargs):
         debug("Fetching list of shows from database. enable set to {}".format(enabled))
         shows = db.get_shows(enabled=enabled)
 
+    retries = {}
+
+    for show in shows:
+        retries[show.id] = 0
+
     info("Updating {} shows in the database".format(len(shows)))
     for show in shows:
-        db_show = add_update_show_by_id(
+        updated_show = add_update_show_by_id(
             db=db, show_id=show.id, ratelimit=config.ratelimit
         )
 
-        if not db_show:
-            error("Problem updating show with id {}".format(show.id))
+        if not updated_show:
+            if retries[show.id] >= 3:
+                error("Failed getting show info 3 times, skipping")
+                continue
+
+            error(
+                "Problem updating show, have retried {} times".format(retries[show.id])
+            )
+            retries[show.id] += 1
+            shows.append(show)

@@ -22,6 +22,7 @@ query ($id: Int) {
     source
     synonyms
     isAdult
+    status
   }
 }
 """
@@ -62,6 +63,7 @@ def add_update_show_by_id(db, show_id, ratelimit=60, enabled=True):
 
     show = db.get_show(show_id)
 
+    # Make sure show is disabled if set to be so
     if not enabled:
         debug("Disabling show")
         db.set_show_enabled(show, enabled=False, commit=True)
@@ -136,6 +138,12 @@ def get_show_info(media_id, ratelimit=60):
     show_show_type = json_resp["format"]
     show_has_source = int(bool(json_resp["source"]))
     show_is_nsfw = int(json_resp["isAdult"])
+    show_status = json_resp["status"]
+
+    if show_status in ["FINISHED", "CANCELLED"]:
+        show_status = False
+    else:
+        show_status = True
 
     # Create the UnprocessedShow
     raw_show = UnprocessedShow(
@@ -147,6 +155,7 @@ def get_show_info(media_id, ratelimit=60):
         show_type=show_show_type,
         has_source=show_has_source,
         is_nsfw=show_is_nsfw,
+        is_airing=show_status,
     )
 
     return raw_show

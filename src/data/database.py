@@ -276,9 +276,10 @@ class DatabaseDatabase:
         show_type = raw_show.show_type
         has_source = raw_show.has_source
         is_nsfw = raw_show.is_nsfw
+        enabled = raw_show.is_airing
         self.q.execute(
-            "INSERT INTO Shows (id, id_mal, name, name_en, type, has_source, is_nsfw) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (id, id_mal, name, name_en, show_type, has_source, is_nsfw),
+            "INSERT INTO Shows (id, id_mal, name, name_en, type, has_source, is_nsfw, enabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (id, id_mal, name, name_en, show_type, has_source, is_nsfw, enabled),
         )
 
         if commit:
@@ -309,6 +310,7 @@ class DatabaseDatabase:
         show_type = raw_show.show_type
         has_source = raw_show.has_source
         is_nsfw = raw_show.is_nsfw
+        enabled = raw_show.is_airing
 
         if id_mal:
             self.q.execute(
@@ -321,8 +323,8 @@ class DatabaseDatabase:
                 "UPDATE Shows SET name_en = ? WHERE id = ?", (name_en, show_id)
             )
         self.q.execute(
-            "UPDATE Shows SET type = ?, has_source = ?, is_nsfw = ? WHERE id = ?",
-            (show_type, has_source, is_nsfw, show_id),
+            "UPDATE Shows SET type = ?, has_source = ?, is_nsfw = ?, enabled = ? WHERE id = ?",
+            (show_type, has_source, is_nsfw, enabled, show_id),
         )
 
         if commit:
