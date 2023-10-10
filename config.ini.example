@@ -1,0 +1,51 @@
+[data]
+database = database.sqlite
+
+[lemmy]
+instance = https://your.instance.com
+community = your_community
+username = your_username
+password = your_password
+
+[options]
+debug = false
+new_show_types = tv movie ova
+# Number of requests per minute to allow, AniList has a hard cap of 90
+ratelimit = 60
+# Whether to actually submit posts or not
+submit = true
+
+[post]
+title = {show_name} - Episode {episode} discussion
+title_with_en = {show_name} • {show_name_en} - Episode {episode} discussion
+title_postfix_final = - FINAL
+
+format_spoiler = **Reminder:** Please do not discuss plot points not yet seen or skipped in the show. Failing to follow the rules may result in a ban.
+format_link = * [{site_name}]({link})
+format_discussion_header = Episode|Link
+format_discussion_align = :-:|:-:
+format_discussion = {episode}|[Link]({link})
+format_discussion_none = *No discussions yet!*
+format_aliases = *{aliases}*
+
+body = 
+    *{show_name}*, episode {episode}
+
+    ::: spoiler Alternative Names
+    {aliases}
+    :::
+
+    ---
+    
+    {spoiler}
+    
+    ---
+    
+    **All discussions**
+    
+    {discussions}
+        
+    ---
+    
+    *This post was created by a bot. Message the mod team for feedback and comments.*
+    *The original source code can be found on [GitHub](https://github.com/wjs018/rikka).*
