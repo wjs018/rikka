@@ -112,7 +112,7 @@ python src/rikka.py -m remove
 
 ### The `update` Module
 
-The update module will fetch updated information from the AniList API and populate the database with it. By default, it will only update the shows that are marked as enabled in the database. This can be modified through the cli.
+The update module will fetch updated information from the AniList API and populate the database with it. By default, it will only update the shows that are marked as enabled in the database. This can be modified through the cli. Additionally, if the show is marked as finished airing or cancelled by AniList when the api call is made, the show will be disabled in the rikka database.
 
 #### Update only enabled shows information
 
