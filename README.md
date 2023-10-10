@@ -198,8 +198,8 @@ password = your_password
 
 Module|Run freq|Command
 :--|:-:|:--
-Episode:<br>Find new episodes|high|python src/rikka.py
-Update:<br>Update show information|low|python src/rikka.py -m update
-Edit:<br>Load or modify shows in database|manual|python src/rikka.py -m edit [show-config]
-Setup:<br>Set up database|once|python src/rikka.py -m setup
+Episode:<br>Find new episodes|high|`python src/rikka.py`
+Update:<br>Update show information|low|`python src/rikka.py -m update`
+Edit:<br>Load or modify shows in database|manual|`python src/rikka.py -m edit [show-config]`
+Setup:<br>Set up database|once|`python src/rikka.py -m setup`
 Others|manual|See module descriptions

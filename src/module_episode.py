@@ -11,20 +11,6 @@ from helper_functions import URL
 from data.models import UpcomingEpisode
 
 
-# airing_schedule_query = """
-# query ($id: Int) {
-#   Media (id: $id) {
-#     airingSchedule(page:1, perPage:3) {
-#       edges {
-#         node {
-#           timeUntilAiring
-#         }
-#       }
-#     }
-#   }
-# }
-# """
-
 airing_schedule_query = """
 query ($time: Int, $id: [Int]) {
   Page(page: 1, perPage: 3) {
