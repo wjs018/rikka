@@ -1,11 +1,31 @@
+![Rikka, of course](rikka.jpg)
+
 # rikka
 
 Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/) instance. Monitors [AniList](https://anilist.co) for upcoming episodes and creates discussion posts for episodes once they air.
 
+## Table of Contents
+
+* [Requirements](https://github.com/wjs018/rikka#requirements)
+* [Design Notes](https://github.com/wjs018/rikka#design-notes)
+* [Modules](https://github.com/wjs018/rikka#modules)
+  * [setup](https://github.com/wjs018/rikka#the-setup-module)
+  * [add](https://github.com/wjs018/rikka#the-add-module)
+  * [disable](https://github.com/wjs018/rikka#the-disable-module)
+  * [enable](https://github.com/wjs018/rikka#the-enable-module)
+  * [remove](https://github.com/wjs018/rikka#the-remove-module)
+  * [update](https://github.com/wjs018/rikka#the-update-module)
+  * [edit](https://github.com/wjs018/rikka#the-edit-module)
+  * [edit_holo](https://github.com/wjs018/rikka#the-edit_holo-module)
+  * [episode](https://github.com/wjs018/rikka#the-episode-module)
+* [Usage](https://github.com/wjs018/rikka#usage)
+* [Module Run Frequency](https://github.com/wjs018/rikka#module-run-frequency)
+
+
 ## Requirements
 
 * Python
-  * Tested and run on 3.10
+  * Tested and run on >= 3.9
   * To my knowlege, requires >= 3.7
 * `unidecode`
 * `requests`
@@ -14,8 +34,13 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
 
 ## Design notes
 
-* Inspired by the great work on [holo](https://github.com/r-anime/holo)
-* Runs once and exits to play nice with schedulers
+This project began as I was experimenting with [holo](https://github.com/r-anime/holo) and ran into difficulties with certain aspects of running it. Specifically, I had problems with the detection of new episodes for certain series and could not figure out the root cause. This led me to think about how to avoid having to parse so many different stream providers like holo does and instead rely on a single, reliable API endpoint. After some searching, I found that AniList provides an endpoint for episode airtimes, so I decided to re-engineer holo to solely rely on the AniList API.
+
+I drew heavy inspiration from the holo project and reworked large sections of the codebase to try to make it simpler. This was done by removing large portions of the code pertaining to stream providers and polls. I also made this with Lemmy in mind, so I removed reddit support as I would not be able to test/support reddit using the new code. Additionally, I added several new modules in order to make things a bit easier to manage in an ongoing basis (add, remove, enable, disable, etc.).
+
+The current version of rikka is still missing some features that holo does provide (new show discovery, batch episode threads, show stream/info links in threads, poll creation). Additionally, there are some features I want to implement in the future such as the option to create a daily/weekly megathread and have some shows in the megathread vs. having a separate discussion post. I would also like to eventually implement engagement tracking. Basically keeping track of previously created posts and recording up/down votes as well as number of comments to potentially automatically enable/disable shows based on engagement.
+
+Finally, this bot is designed to run mostly identically to holo. So, it runs once and then exits so that it plays nice with external schedulers (I simply use cron and a shell script).
 
 ## Modules
 
