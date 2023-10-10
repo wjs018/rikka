@@ -167,7 +167,7 @@ password = your_password
 3. Enable the shows that should get discussion posts one of two ways:
    1. Load list of AniList ids by yaml file `python src/rikka.py -m edit season_configs/yaml_file_of_ids.yaml`
    2. Load yaml config file formatted for [holo](https://github.com/r-anime/holo) `python src/rikka.py -m edit_holo season_configs/holo_formatted_file.yaml`
-4. The bot is now ready to post threads with `python src/holo.py`
+4. The bot is now ready to post threads with `python src/rikka.py`
 
 ### Module Run Frequency
 
