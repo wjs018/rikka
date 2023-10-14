@@ -10,12 +10,12 @@ def main(config, db, *args, **kwargs):
 
     show_id = None
 
-    if args[0].isnumeric():
+    if len(args) == 0:
+        enabled = "enabled"
+    elif args[0].isnumeric():
         show_id = int(args[0])
     elif len(args) == 1:
         enabled = args[0]
-    elif len(args) == 0:
-        enabled = "enabled"
     else:
         error("Incorrect number of arguments for update module")
 
