@@ -29,7 +29,7 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
 - `unidecode`
 - `requests`
 - `pyyaml`
-- `pythorhead`
+- `pythorhead` >= 0.18.0
 
 ## Design notes
 
