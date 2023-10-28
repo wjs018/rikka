@@ -10,7 +10,14 @@ from logging import error, exception, debug
 from typing import Optional, List
 from unidecode import unidecode
 
-from .models import ShowType, Show, UnprocessedShow, Episode, UpcomingEpisode
+from .models import (
+    ShowType,
+    Show,
+    UnprocessedShow,
+    Episode,
+    UpcomingEpisode,
+    Megathread,
+)
 
 
 def open_database(the_database):
@@ -136,6 +143,7 @@ class DatabaseDatabase:
             type		INTEGER NOT NULL,
             has_source	INTEGER NOT NULL DEFAULT 0,
             is_nsfw		INTEGER NOT NULL DEFAULT 0,
+            megathread  INTEGER NOT NULL DEFAULT 0,
             enabled		INTEGER NOT NULL DEFAULT 1,
             FOREIGN KEY(type) REFERENCES ShowTypes(id)
         )"""
@@ -170,6 +178,17 @@ class DatabaseDatabase:
         )"""
         )
 
+        self.q.execute(
+            """CREATE TABLE IF NOT EXISTS Megathreads (
+            id              INTEGER NOT NULL,
+            thread_num      INTEGER NOT NULL,
+            post_url        TEXT,
+            num_episodes    INTEGER NOT NULL,
+            UNIQUE(id, thread_num) ON CONFLICT REPLACE,
+            FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
+        )"""
+        )
+
         self._db.commit()
 
     # Shows
@@ -200,7 +219,8 @@ class DatabaseDatabase:
 
         if enabled == "all":
             self.q.execute(
-                "SELECT id, id_mal, name, name_en, type, has_source, is_nsfw, enabled FROM Shows"
+                "SELECT id, id_mal, name, name_en, type, has_source, is_nsfw, \
+                megathread, enabled FROM Shows"
             )
         else:
             if enabled == "enabled":
@@ -211,8 +231,8 @@ class DatabaseDatabase:
                 error("enabled parameter not set correctly")
 
             self.q.execute(
-                "SELECT id, id_mal, name, name_en, type, has_source, is_nsfw, enabled FROM Shows \
-                WHERE enabled = ?",
+                "SELECT id, id_mal, name, name_en, type, has_source, is_nsfw, \
+                megathread, enabled FROM Shows WHERE enabled = ?",
                 (enabled,),
             )
 
@@ -229,13 +249,12 @@ class DatabaseDatabase:
 
         debug("Getting show from database")
 
-        # Get show
         if id is None:
             error("Show ID not provided to get_show")
             return None
         self.q.execute(
-            "SELECT id, id_mal, name, name_en, type, has_source, is_nsfw, enabled FROM Shows \
-            WHERE id = ?",
+            "SELECT id, id_mal, name, name_en, type, has_source, is_nsfw, megathread, \
+            enabled FROM Shows WHERE id = ?",
             (id,),
         )
         show = self.q.fetchone()
@@ -252,8 +271,8 @@ class DatabaseDatabase:
         debug("Getting show from database")
 
         self.q.execute(
-            "SELECT id, name, name_en, type, has_source, is_nsfw, enabled, delayed FROM Shows \
-            WHERE name = ?",
+            "SELECT id, name, name_en, type, has_source, is_nsfw, megathread, enabled, \
+            FROM Shows WHERE name = ?",
             (name,),
         )
         show = self.q.fetchone()
@@ -278,7 +297,8 @@ class DatabaseDatabase:
         is_nsfw = raw_show.is_nsfw
         enabled = raw_show.is_airing
         self.q.execute(
-            "INSERT INTO Shows (id, id_mal, name, name_en, type, has_source, is_nsfw, enabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO Shows (id, id_mal, name, name_en, type, has_source, is_nsfw, \
+            enabled) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (id, id_mal, name, name_en, show_type, has_source, is_nsfw, enabled),
         )
 
@@ -356,6 +376,63 @@ class DatabaseDatabase:
         if commit:
             self._db.commit()
 
+    @db_error_default(bool)
+    def get_megathread_status(self, show_id):
+        """
+        Returns a boolean. True if a show is currently set to post in a
+        megathread, False if episodes get individual discussion posts.
+        """
+
+        self.q.execute("SELECT megathread FROM Shows WHERE id = ?", (show_id,))
+
+        megathread = self.q.fetchone()
+
+        return bool(megathread)
+
+    @db_error_default(list)
+    def get_megathread_statuses(self, enabled="enabled"):
+        """
+        Returns a list of show ids that are set to use megathreads.
+
+        enabled parameter can have values of 'enabled', 'disabled', or 'all'
+        and has an identical filtering effect as get_shows().
+        """
+
+        debug("Getting list of shows using megathreads from the database.")
+
+        show_ids = list()
+
+        if enabled == "all":
+            self.q.execute("SELECT id FROM Shows WHERE megathread = ?", (1,))
+        else:
+            if enabled == "enabled":
+                enabled = 1
+            elif enabled == "disabled":
+                enabled = 0
+            else:
+                error("enabled parameter not set correctly")
+
+            self.q.execute(
+                "SELECT id FROM Shows WHERE megathread = ? AND enabled = ?",
+                (1, enabled),
+            )
+
+        for show in self.q.fetchall():
+            show_ids.append(show)
+
+        return show_ids
+
+    @db_error
+    def set_megathread_status(self, show_id, enabled, commit=True):
+        """Set a show to post to a megathread or not."""
+
+        self.q.execute(
+            "UPDATE Shows SET megathread = ? WHERE id = ?", (int(enabled), show_id)
+        )
+
+        if commit:
+            self._db.commit()
+
     # Episodes
 
     @db_error
@@ -390,7 +467,7 @@ class DatabaseDatabase:
         debug("Fetching the most recent episode for {}".format(show.name))
 
         self.q.execute(
-            "SELECT episode, post_url FROM Episodes WHERE show = ? ORDER BY episode DESC LIMIT 1",
+            "SELECT episode, post_url FROM Episodes WHERE id = ? ORDER BY episode DESC LIMIT 1",
             (show.id,),
         )
         data = self.q.fetchone()
@@ -416,8 +493,14 @@ class DatabaseDatabase:
         return episodes
 
     @db_error
-    def add_upcoming_episode(self, media_id, episode_num, airing_time):
-        """Add an upcoming episode to the database."""
+    def add_upcoming_episode(self, upcoming_episode):
+        """
+        Add an upcoming episode to the database using given UpcomingEpisode object.
+        """
+
+        media_id = upcoming_episode.media_id
+        episode_num = upcoming_episode.number
+        airing_time = upcoming_episode.airing_time
 
         self.q.execute(
             "INSERT INTO UpcomingEpisodes (id, episode, airing_time) VALUES (?, ?, ?)",
@@ -458,3 +541,71 @@ class DatabaseDatabase:
         )
 
         self._db.commit()
+
+    # Megathreads
+
+    @db_error_default(list)
+    def get_megathreads(self, media_id):
+        """Returns all the megathreads for a given media id."""
+
+        megathreads = []
+
+        self.q.execute(
+            "SELECT id, thread_num, post_url, num_episodes FROM Megathreads \
+            WHERE id = ? ORDER BY thread_num DESC",
+            (media_id,),
+        )
+
+        for thread in self.q.fetchall():
+            thread = Megathread(*thread)
+            megathreads.append(thread)
+
+        return megathreads
+
+    @db_error_default(None)
+    def get_latest_megathread(self, media_id):
+        """Get the most recent megathread for a given show id."""
+
+        self.q.execute(
+            "SELECT id, thread_num, post_url, num_episodes FROM Megathreads \
+            WHERE id = ? ORDER BY thread_num DESC LIMIT 1",
+            (media_id,),
+        )
+
+        thread = self.q.fetchone()
+        if thread is not None:
+            return Megathread(*thread)
+        return None
+
+    @db_error
+    def add_megathread(self, megathread: Megathread, commit=True):
+        """Add or update a megathread in the database."""
+
+        debug("Inserting megathread: {}".format(megathread))
+
+        id = megathread.media_id
+        thread_num = megathread.thread_num
+        post_url = megathread.post_url
+        num_episodes = megathread.num_episodes
+
+        self.q.execute(
+            "INSERT INTO Megathreads (id, thread_num, post_url, num_episodes) VALUES \
+            (?, ?, ?, ?)",
+            (id, thread_num, post_url, num_episodes),
+        )
+
+        if commit:
+            self._db.commit()
+
+    @db_error
+    def increment_num_episodes(self, megathread: Megathread, commit=True):
+        """Increases num_episodes by 1 for given megathread."""
+
+        id = megathread.media_id
+        thread_num = megathread.thread_num
+        new_num_episodes = megathread.num_episodes + 1
+
+        self.q.execute(
+            "UPDATE Megathreads SET num_episodes = ? WHERE id = ? AND thread_num = ?",
+            (new_num_episodes, id, thread_num),
+        )

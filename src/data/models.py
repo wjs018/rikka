@@ -8,8 +8,12 @@ class ShowType(enum.Enum):
 
     UNKNOWN = 0
     TV = 1
-    MOVIE = 2
-    OVA = 3
+    TV_SHORT = 2
+    MOVIE = 3
+    SPECIAL = 4
+    OVA = 5
+    ONA = 6
+    MUSIC = 7
 
 
 def str_to_showtype(string):
@@ -19,24 +23,19 @@ def str_to_showtype(string):
         string = string.lower()
         if string == "tv":
             return ShowType.TV
+        if string == "tv_short":
+            return ShowType.TV_SHORT
         if string == "movie":
             return ShowType.MOVIE
+        if string == "special":
+            return ShowType.SPECIAL
         if string == "ova":
             return ShowType.OVA
+        if string == "ona":
+            return ShowType.ONA
+        if string == "music":
+            return ShowType.MUSIC
     return ShowType.UNKNOWN
-
-
-def showtype_to_str(showtype):
-    """Convert a showtype int to the string representation."""
-
-    if showtype == 1:
-        return "TV"
-    elif showtype == 2:
-        return "MOVIE"
-    elif showtype == 3:
-        return "OVA"
-
-    return "UNKNOWN"
 
 
 class DbEqMixin:
@@ -64,6 +63,7 @@ class Show(DbEqMixin):
         show_type,
         has_source,
         is_nsfw,
+        megathread,
         enabled,
     ):
         # Note: arguments are order-sensitive
@@ -74,6 +74,7 @@ class Show(DbEqMixin):
         self.type = show_type
         self.has_source = has_source == 1
         self.is_nsfw = is_nsfw == 1
+        self.megathread = megathread == 1
         self.enabled = enabled
 
 
@@ -131,3 +132,27 @@ class UnprocessedShow:
         self.has_source = has_source
         self.is_nsfw = is_nsfw
         self.is_airing = is_airing
+
+    def __eq__(self, other):
+        return self.media_id == other.media_id
+
+    def __ne__(self, other):
+        return self.media_id != other.media_id
+
+    def __hash__(self):
+        return hash(self.media_id)
+
+
+class Megathread:
+    """Class used to define a megathread."""
+
+    def __init__(self, media_id, thread_num, post_url, num_episodes):
+        self.media_id = media_id
+        self.thread_num = thread_num
+        self.post_url = post_url
+        self.num_episodes = num_episodes
+
+    def __str__(self):
+        return "Megathread number {} for show id {}, containing {} episodes at link {}".format(
+            self.thread_num, self.media_id, self.num_episodes, self.post_url
+        )

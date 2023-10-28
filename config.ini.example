@@ -9,16 +9,28 @@ password = your_password
 
 [options]
 debug = false
-new_show_types = tv movie ova
+# Possible options from AniList api include:
+# TV, TV_SHORT, MOVIE, SPECIAL, OVA, ONA, MUSIC
+new_show_types = tv tv_short movie special ova ona music
+# Two letter code for countries to include shows from. e.g. JP CN
+# See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 for full list
+countries = JP
 # Number of requests per minute to allow, AniList has a hard cap of 90
 ratelimit = 60
 # Whether to actually submit posts or not
 submit = true
+# Number of days to look ahead for upcoming episodes, default of 7 if unspecified
+days = 10
+# Enable or disable discovery of new shows
+show_discovery = true
+# Minimum number of upvotes needed to keep a dedicated discussion post, default of 1
+min_upvotes = 1
+# Minimum number of comments needed to keep a dedicated discussion post, default of 0
+min_comments = 1
 
 [post]
 title = {show_name} - Episode {episode} discussion
 title_with_en = {show_name} • {show_name_en} - Episode {episode} discussion
-title_postfix_final = - FINAL
 
 format_spoiler = **Reminder:** Please do not discuss plot points not yet seen or skipped in the show. Failing to follow the rules may result in a ban.
 format_link = * [{site_name}]({link})
@@ -26,14 +38,15 @@ format_discussion_header = Episode|Link
 format_discussion_align = :-:|:-:
 format_discussion = {episode}|[Link]({link})
 format_discussion_none = *No discussions yet!*
-format_aliases = *{aliases}*
+format_aliases = 
+    ::: spoiler Alternative Names
+    *{aliases}*
+    :::
 
-body = 
+post_body = 
     *{show_name}*, episode {episode}
 
-    ::: spoiler Alternative Names
     {aliases}
-    :::
 
     ---
     
@@ -44,8 +57,52 @@ body =
     **All discussions**
     
     {discussions}
-        
+    
     ---
     
     *This post was created by a bot. Message the mod team for feedback and comments.*
     *The original source code can be found on [GitHub](https://github.com/wjs018/rikka).*
+
+[megathread]
+# Maximum number of episodes to include in one megathread before creating a new one
+megathread_episodes = 12
+megathread_title = {show_name} - Megathread
+megathread_title_with_en = {show_name} • {show_name_en} - Megathread
+
+megathread_body =
+    *{show_name}* Megathread
+
+    {aliases}
+
+    ---
+
+    Scroll through the comments carefully. Each episode in this megathread has a 
+    top-level comment created by the bot. Please keep discussion for that episode
+    contained within replies to the appropriate comment by the bot.
+
+    To best avoid spoilers, scroll slowly and collapse the bot comment chain if it
+    pertains to an episode you have yet to watch.
+
+    {spoiler}
+
+    ---
+
+    **All discussions**
+
+    {discussions}
+
+    ---
+
+    *This post was created by a bot. Message the mod team for feedback and comments.*
+    *The original source code can be found on [GitHub](https://github.com/wjs018/rikka).*
+
+megathread_comment =
+    *{show_name}*, episode {episode}
+
+    ---
+
+    Please keep discussions about this episode contained within replies to this comment 
+    and avoid creating top level comments in the megathread that may spoil other
+    visitors to this megathread.
+
+    {spoiler}

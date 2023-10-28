@@ -136,7 +136,7 @@ def get_show_info(media_id, ratelimit=60):
     show_name_en = json_resp["title"]["english"]
     show_more_names = json_resp["synonyms"]
     show_show_type = json_resp["format"]
-    show_has_source = int(bool(json_resp["source"]))
+    show_has_source = int(json_resp["source"] != "ORIGINAL")
     show_is_nsfw = int(json_resp["isAdult"])
     show_status = json_resp["status"]
 

@@ -33,7 +33,12 @@ class Config:
         self.debug = False
         self.ratelimit = 60
         self.new_show_types = list()
+        self.countries = list()
         self.submit = None
+        self.days = None
+        self.show_discovery = False
+        self.min_upvotes = None
+        self.min_comments = None
 
         # lemmy section
         self.l_community = None
@@ -44,9 +49,15 @@ class Config:
         # post section
         self.post_title = None
         self.post_title_with_en = None
-        self.post_title_postfix_final = None
         self.post_body = None
         self.post_formats = dict()
+
+        # megathread section
+        self.megathread_episodes = None
+        self.megathread_title = None
+        self.megathread_title_with_en = None
+        self.megathread_body = None
+        self.megathread_comment = None
 
 
 def from_file(file_path):
@@ -81,6 +92,10 @@ def from_file(file_path):
         api_call_times = deque(maxlen=config.ratelimit)
         config.debug = sec.getboolean("debug", False)
         config.submit = sec.getboolean("submit", True)
+        config.days = sec.getint("days", 7)
+        config.show_discovery = sec.getboolean("show_discovery", False)
+        config.min_upvotes = sec.getint("min_upvotes", 1)
+        config.min_comments = sec.getint("min_comments", 0)
 
         config.new_show_types.extend(
             map(
@@ -89,15 +104,29 @@ def from_file(file_path):
             )
         )
 
+        config.countries.extend(
+            map(
+                lambda s: s.strip(),
+                sec.get("countries", "").split(" "),
+            )
+        )
+
     if "post" in parsed:
         sec = parsed["post"]
         config.post_title = sec.get("title", None)
         config.post_title_with_en = sec.get("title_with_en", None)
-        config.post_title_postfix_final = sec.get("title_postfix_final", None)
-        config.post_body = sec.get("body", None)
+        config.post_body = sec.get("post_body", None)
         for key in sec:
             if key.startswith("format_") and len(key) > 7:
                 config.post_formats[key[7:]] = sec[key]
+
+    if "megathread" in parsed:
+        sec = parsed["megathread"]
+        config.megathread_episodes = sec.getint("megathread_episodes", 12)
+        config.megathread_title = sec.get("megathread_title", None)
+        config.megathread_title_with_en = sec.get("megathread_title_with_en", None)
+        config.megathread_body = sec.get("megathread_body", None)
+        config.megathread_comment = sec.get("megathread_comment", None)
 
     return config
 
@@ -134,4 +163,10 @@ def validate(config):
         return "post title missing"
     if is_bad_str(config.post_body):
         return "post body missing"
+    if is_bad_str(config.megathread_title):
+        return "megathread title missing"
+    if is_bad_str(config.megathread_body):
+        return "megathread body missing"
+    if is_bad_str(config.megathread_comment):
+        return "megathread comment missing"
     return False
