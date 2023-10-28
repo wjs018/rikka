@@ -95,7 +95,7 @@ python src/rikka.py -m enable 457
 
 ### The `remove` Module
 
-If you want to not only disable, but purge a show and any references to it from the database, that can be done with the remove module and the Anilist id.
+If you want to not only disable, but purge a show and any references to it from the database, that can be done with the remove module and the AniList id.
 
 ```bash
 python src/rikka.py -m remove 154391
@@ -169,11 +169,19 @@ python src/rikka.py -m edit_holo season_configs/example_holo.yaml
 
 ### The `episode` Module
 
-The episode module is the primary module that is used to make discussion posts. First, it will query AniList for upcoming episodes of all enabled shows in the database. Then, it will make discussion posts for episodes that were previously found as upcoming, but the current time is later than the scheduled airing time.
+The episode module is the primary module that is used to make discussion posts and the default module that is run if no module is specified. First, it will query AniList for upcoming episodes of all enabled shows in the database. Then, it will make discussion posts for episodes that were previously found as upcoming, but the current time is later than the scheduled airing time.
 
 ```bash
 python src/rikka.py -m episode
 ```
+
+or
+
+```bash
+python src/rikka.py
+```
+
+Also, if enabled in the config file, the episode module can discover new shows that match the specified criteria and populate the database with the show's information.
 
 ## Usage
 
