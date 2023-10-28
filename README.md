@@ -6,31 +6,30 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
 
 ## Table of Contents
 
-* [Requirements](https://github.com/wjs018/rikka#requirements)
-* [Design Notes](https://github.com/wjs018/rikka#design-notes)
-* [Modules](https://github.com/wjs018/rikka#modules)
-  * [setup](https://github.com/wjs018/rikka#the-setup-module)
-  * [add](https://github.com/wjs018/rikka#the-add-module)
-  * [disable](https://github.com/wjs018/rikka#the-disable-module)
-  * [enable](https://github.com/wjs018/rikka#the-enable-module)
-  * [remove](https://github.com/wjs018/rikka#the-remove-module)
-  * [update](https://github.com/wjs018/rikka#the-update-module)
-  * [edit](https://github.com/wjs018/rikka#the-edit-module)
-  * [edit_holo](https://github.com/wjs018/rikka#the-edit_holo-module)
-  * [episode](https://github.com/wjs018/rikka#the-episode-module)
-* [Usage](https://github.com/wjs018/rikka#usage)
-* [Module Run Frequency](https://github.com/wjs018/rikka#module-run-frequency)
-
+- [Requirements](https://github.com/wjs018/rikka#requirements)
+- [Design Notes](https://github.com/wjs018/rikka#design-notes)
+- [Modules](https://github.com/wjs018/rikka#modules)
+  - [setup](https://github.com/wjs018/rikka#the-setup-module)
+  - [add](https://github.com/wjs018/rikka#the-add-module)
+  - [disable](https://github.com/wjs018/rikka#the-disable-module)
+  - [enable](https://github.com/wjs018/rikka#the-enable-module)
+  - [remove](https://github.com/wjs018/rikka#the-remove-module)
+  - [update](https://github.com/wjs018/rikka#the-update-module)
+  - [edit](https://github.com/wjs018/rikka#the-edit-module)
+  - [edit_holo](https://github.com/wjs018/rikka#the-edit_holo-module)
+  - [episode](https://github.com/wjs018/rikka#the-episode-module)
+- [Usage](https://github.com/wjs018/rikka#usage)
+- [Module Run Frequency](https://github.com/wjs018/rikka#module-run-frequency)
 
 ## Requirements
 
-* Python
-  * Tested and run on >= 3.9
-  * To my knowlege, requires >= 3.7
-* `unidecode`
-* `requests`
-* `pyyaml`
-* `pythorhead`
+- Python
+  - Tested and run on >= 3.9
+  - To my knowlege, requires >= 3.7
+- `unidecode`
+- `requests`
+- `pyyaml`
+- `pythorhead`
 
 ## Design notes
 
@@ -112,7 +111,7 @@ python src/rikka.py -m remove
 
 ### The `update` Module
 
-The update module will fetch updated information from the AniList API and populate the database with it. By default, it will only update the shows that are marked as enabled in the database. This can be modified through the cli. Additionally, if the show is marked as finished airing or cancelled by AniList when the api call is made, the show will be disabled in the rikka database.
+The update module will fetch updated show information from the AniList API and populate the database with it. By default, it will only update the shows that are marked as enabled in the database. This can be modified through the cli. Additionally, if the show is marked as finished airing or cancelled by AniList when the api call is made, the show will be disabled in the rikka database.
 
 #### Update only enabled shows information
 
@@ -160,7 +159,7 @@ python src/rikka.py -m edit season_configs/example.yaml
 
 ### The `edit_holo` Module
 
-The edit_holo module is similar to the edit module above, but instead parses a yaml file that is formatted for use by [holo](https://github.com/r-anime/holo). An example file is included at `season_configs/example_holo.yaml`. The only parts of this file that is used by rikka are the AniList urls so that the AniList id can be extracted. Then, the rikka database is populated through fresh pulls on the AniList API. This module is included for convenience since the holo project does such excellent work cataloguing shows. Usage is identical to the edit module just with a different module name.
+The edit_holo module is similar to the edit module above, but instead parses a yaml file that is formatted for use by [holo](https://github.com/r-anime/holo). An example file is included at `season_configs/example_holo.yaml`. The only parts of this file that are used by rikka are the AniList urls so that the AniList id can be extracted. Thus, if there is not an AniList url provided for a show, it will not be added to the rikka database. After extracting AniList ids from the yaml file, the rikka database is populated through fresh pulls on the AniList API. This module is included for convenience since the holo project does such excellent work cataloguing shows. Usage is identical to the edit module just with a different module name.
 
 ```bash
 python src/rikka.py -m edit_holo season_configs/example_holo.yaml
@@ -178,7 +177,7 @@ python src/rikka.py -m episode
 
 ## Usage
 
-1. Update config file with your desired configuration including lemmy details. Make sure the sommunity you're posting to is a personal test community while you are confirming everything works for you.
+1. Update config file with your desired configuration including lemmy details. Make sure the community you're posting to is a personal test community while you are confirming everything works for you.
 
 ```ini
 [lemmy]
@@ -188,18 +187,20 @@ username = your_username
 password = your_password
 ```
 
-2. Set up the database by running `python src/rikka.py -m setup`
-3. Enable the shows that should get discussion posts one of two ways:
-   1. Load list of AniList ids by yaml file `python src/rikka.py -m edit season_configs/yaml_file_of_ids.yaml`
-   2. Load yaml config file formatted for [holo](https://github.com/r-anime/holo) `python src/rikka.py -m edit_holo season_configs/holo_formatted_file.yaml`
-4. The bot is now ready to post threads with `python src/rikka.py`
+2. Make sure that the `[options]` portion of the config file is set up with the desired configuration. Comments are included in the example config file to aid in understanding what different options do.
+3. Set up the database by running `python src/rikka.py -m setup`
+4. Enable the shows that should get discussion posts one of three ways:
+   1. Enable show discovery options in the config file and then run the episode module with `python src/rikka.py`
+   2. Load list of AniList ids by yaml file `python src/rikka.py -m edit season_configs/yaml_file_of_ids.yaml`
+   3. Load a yaml config file formatted for [holo](https://github.com/r-anime/holo) `python src/rikka.py -m edit_holo season_configs/holo_formatted_file.yaml`
+5. The bot is now ready to post threads with `python src/rikka.py`
 
 ### Module Run Frequency
 
-Module|Run freq|Command
-:--|:-:|:--
-Episode:<br>Find new episodes|high|`python src/rikka.py`
-Update:<br>Update show information|low|`python src/rikka.py -m update`
-Edit:<br>Load or modify shows in database|manual|`python src/rikka.py -m edit [show-config]`
-Setup:<br>Set up database|once|`python src/rikka.py -m setup`
-Others|manual|See module descriptions
+| Module                                    | Run freq | Command                                     |
+| :---------------------------------------- | :------: | :------------------------------------------ |
+| Episode:<br>Find new episodes             |   high   | `python src/rikka.py`                       |
+| Update:<br>Update show information        |   low    | `python src/rikka.py -m update`             |
+| Edit:<br>Load or modify shows in database |  manual  | `python src/rikka.py -m edit [show-config]` |
+| Setup:<br>Set up database                 |   once   | `python src/rikka.py -m setup`              |
+| Others                                    |  manual  | See module descriptions                     |

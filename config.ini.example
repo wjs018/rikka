@@ -8,24 +8,29 @@ username = your_username
 password = your_password
 
 [options]
+# Enable debug logging, default false
 debug = false
-# Possible options from AniList api include:
+# Types of shows to auto-discover. possible options from AniList api include:
 # TV, TV_SHORT, MOVIE, SPECIAL, OVA, ONA, MUSIC
+# default of tv ona
 new_show_types = tv tv_short movie special ova ona music
-# Two letter code for countries to include shows from. e.g. JP CN
+# Two letter code for countries to include shows from. e.g. JP CN. Default is JP
 # See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 for full list
 countries = JP
-# Number of requests per minute to allow, AniList has a hard cap of 90
+# Number of requests per minute to allow, AniList has a hard cap of 90, default 60
 ratelimit = 60
-# Whether to actually submit posts or not
+# Whether to actually submit posts or not, default true
 submit = true
 # Number of days to look ahead for upcoming episodes, default of 7 if unspecified
 days = 10
-# Enable or disable discovery of new shows
+# Enable or disable discovery of new shows, default false
 show_discovery = true
 # Minimum number of upvotes needed to keep a dedicated discussion post, default of 1
+# Setting this to <= 1 will disable this requirement since there is always >= 1 upvote
 min_upvotes = 1
 # Minimum number of comments needed to keep a dedicated discussion post, default of 0
+# Setting this to <= 0 will disable this requirement since there can't be fewer than 0
+# comments
 min_comments = 1
 
 [post]

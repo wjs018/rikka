@@ -100,14 +100,14 @@ def from_file(file_path):
         config.new_show_types.extend(
             map(
                 lambda s: str_to_showtype(s.strip()),
-                sec.get("new_show_types", "").split(" "),
+                sec.get("new_show_types", "tv ona").split(" "),
             )
         )
 
         config.countries.extend(
             map(
                 lambda s: s.strip(),
-                sec.get("countries", "").split(" "),
+                sec.get("countries", "JP").split(" "),
             )
         )
 
