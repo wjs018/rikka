@@ -261,7 +261,7 @@ def _get_airing_schedule(page, start, end, ratelimit=60):
             break
 
         sleep_secs = (min_ns - delta_ns) / 1000000000.0
-        debug("Sleeping {} seconds to respect rate limit.".format(sleep_secs))
+        info("Sleeping {} seconds to respect rate limit.".format(sleep_secs))
         time.sleep(sleep_secs)
 
     # Make the HTTP API request
@@ -366,6 +366,7 @@ def _create_standalone_post(db, config, episode):
     if post_url:
         post_url.replace("http:", "https:")
         info("Post made at url: {}".format(post_url))
+        info("Post title:\n{}".format(title))
 
         # Add episode to the Episodes table
         db.add_episode(episode.media_id, episode.number, post_url)
@@ -512,8 +513,6 @@ def _create_post_contents(config, db, aired_episode, submit=True):
 
     post_title = _create_post_title(config, db, aired_episode)
     post_title = _format_post_text(config, db, aired_episode, post_title)
-
-    info("Post title:\n{}".format(post_title))
 
     post_body = _format_post_text(config, db, aired_episode, config.post_body)
 

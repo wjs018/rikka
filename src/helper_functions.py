@@ -105,7 +105,7 @@ def get_show_info(media_id, ratelimit=60):
             break
 
         sleep_secs = (min_ns - delta_ns) / 1000000000.0
-        debug("Sleeping {} seconds to respect rate limit.".format(sleep_secs))
+        info("Sleeping {} seconds to respect rate limit.".format(sleep_secs))
         time.sleep(sleep_secs)
 
     # Make the HTTP API request

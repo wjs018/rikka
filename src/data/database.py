@@ -292,6 +292,11 @@ class DatabaseDatabase:
         id_mal = raw_show.id_mal
         name = raw_show.name
         name_en = raw_show.name_en
+
+        if name_en:
+            if name_en.lower() == name.lower():
+                name_en = ""
+
         show_type = raw_show.show_type
         has_source = raw_show.has_source
         is_nsfw = raw_show.is_nsfw
@@ -327,6 +332,11 @@ class DatabaseDatabase:
         id_mal = raw_show.id_mal
         name = raw_show.name
         name_en = raw_show.name_en
+
+        if name_en:
+            if name_en.lower() == name.lower():
+                name_en = ""
+
         show_type = raw_show.show_type
         has_source = raw_show.has_source
         is_nsfw = raw_show.is_nsfw
