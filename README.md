@@ -8,6 +8,7 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
 
 - [Requirements](https://github.com/wjs018/rikka#requirements)
 - [Design Notes](https://github.com/wjs018/rikka#design-notes)
+- [Configuration and Operation](https://github.com/wjs018/rikka#megathread-configuration)
 - [Modules](https://github.com/wjs018/rikka#modules)
   - [setup](https://github.com/wjs018/rikka#the-setup-module)
   - [add](https://github.com/wjs018/rikka#the-add-module)
@@ -37,9 +38,21 @@ This project began as I was experimenting with [holo](https://github.com/r-anime
 
 I drew heavy inspiration from the holo project and reworked large sections of the codebase to try to make it simpler. This was done by removing large portions of the code pertaining to stream providers and polls. I also made this with Lemmy in mind, so I removed reddit support as I would not be able to test/support reddit using the new code. Additionally, I added several new modules in order to make things a bit easier to manage in an ongoing basis (add, remove, enable, disable, etc.).
 
-The current version of rikka is still missing some features that holo does provide (new show discovery, batch episode threads, show stream/info links in threads, poll creation). Additionally, there are some features I want to implement in the future such as the option to create a daily/weekly megathread and have some shows in the megathread vs. having a separate discussion post. I would also like to eventually implement engagement tracking. Basically keeping track of previously created posts and recording up/down votes as well as number of comments to potentially automatically enable/disable shows based on engagement.
+The current version of rikka is still missing some features that holo does provide (batch episode threads, show stream/info links in threads, poll creation). Additionally, there are some features I want to implement in the future such as the option to create a daily/weekly megathreads, or the automatic disabling of shows based on engagement.
 
 Finally, this bot is designed to run mostly identically to holo. So, it runs once and then exits so that it plays nice with external schedulers (I simply use cron and a shell script).
+
+## Megathread Configuration
+
+The config file contains several different settings that can impact how rikka makes posts. The most different of these from what is possible with holo is the engagement and megathread settings. The basic idea is that rikka enables the option to create megathreads for shows instead of standalone discussion posts for each episode. Each show would have its own megathread and then each episode would consist of a top-level comment to that post within the megathread. The rationale for this option is to still allow for a place to discuss shows that fewer people might be engaged with, but avoiding having a bunch of standalone discussion posts with little/no engagement that clog up the community feed for others.
+
+The megathread post/comment templates are configured in their own section of the config file. They reuse the same formatting settings as in the post section of the config file (all the `format_*` options). Also in that section is `megathread_episodes` which specifies the number of episode generated top-level comments that should be included in a megathread before creating a new megathread to house future discussions.
+
+Additional settings for enabling/disabling megathreads are found in the options section of the config. That is where the engagement metric thresholds are set. The `min_upvotes` setting specifies how many upvotes a show's previous episode must have in order to remain (or become) a standalone post for the current episode. This check is run at the time a new episode is about to be posted. So, for a show that airs weekly, the previous episode will have had 7 days to collect enough upvotes to try to meet the threshold. If the threshold is not met, then the current episode will instead be placed in the show's megathread. If there is not a previous megathread for the show, then rikka will create one and place the top-level comment into that megathread. If the previous week's episode was posted as a top-level comment in a megathread, then the number of upvotes on that comment will be compared to the threshold.
+
+The `min_comments` setting works similarly but instead of upvotes, it checks the number of comments in the previous episode's discussion thread. If the previous episode was posted in a megathread, then it checks the number of children comment to the previous episode's top-level comment. Episodes must meet both the upvote and comment criteria to have episodes posted as standalone posts. It is possible to have a show be relegated to a megathread, but then be promoted back to standalone posts based on engagement.
+
+To disable megathreads altogether and preserve behavior similar to holo, you can set `min_upvotes = 1` and `min_comments = 0`. These are the default values if these settings are not configured in the config file.
 
 ## Modules
 
