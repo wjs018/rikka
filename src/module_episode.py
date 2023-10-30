@@ -39,6 +39,7 @@ query ($page: Int, $start: Int, $end: Int) {
         synonyms
         isAdult
         status
+        duration
       }
     }
   }
@@ -290,6 +291,9 @@ def _get_airing_schedule(page, start, end, ratelimit=60):
         media_id = episode["media"]["id"]
         episode_num = episode["episode"]
         air_time = episode["airingAt"]
+
+        if episode["media"]["duration"]:
+            air_time += 60 * episode["media"]["duration"]
 
         found_episodes.append(UpcomingEpisode(media_id, episode_num, air_time))
 
