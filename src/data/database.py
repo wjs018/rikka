@@ -297,6 +297,13 @@ class DatabaseDatabase:
             if name_en.lower() == name.lower():
                 name_en = ""
 
+        # Sanitize & to and to avoid over-zealous lemmy sanitization in post titles
+        name = name.replace("&", " and ")
+        name = re.sub(r"\s+", " ", name)
+        if name_en:
+            name_en = name_en.replace("&", " and ")
+            name_en = re.sub(r"\s+", " ", name_en)
+
         show_type = raw_show.show_type
         has_source = raw_show.has_source
         is_nsfw = raw_show.is_nsfw
@@ -336,6 +343,13 @@ class DatabaseDatabase:
         if name_en:
             if name_en.lower() == name.lower():
                 name_en = ""
+
+        # Sanitize & to and to avoid over-zealous lemmy sanitization in post titles
+        name = name.replace("&", " and ")
+        name = re.sub(r"\s+", " ", name)
+        if name_en:
+            name_en = name_en.replace("&", " and ")
+            name_en = re.sub(r"\s+", " ", name_en)
 
         show_type = raw_show.show_type
         has_source = raw_show.has_source
