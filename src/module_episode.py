@@ -46,20 +46,6 @@ query ($page: Int, $start: Int, $end: Int) {
 }
 """
 
-airing_schedule_query = """
-query ($time: Int, $id: [Int]) {
-  Page(page: 1, perPage: 3) {
-    pageInfo {
-      total
-    }
-    airingSchedules(airingAt_greater: $time, sort: TIME, mediaId_in: $id) {
-      airingAt
-      episode
-    }
-  }
-}
-"""
-
 
 def main(config, db, *args, **kwargs):
     """Main function for episode module"""
@@ -121,10 +107,12 @@ def main(config, db, *args, **kwargs):
 def _add_update_upcoming_episodes(db, config):
     """
     Queries AniList for the airing schedule and updates the database with upcoming
-    episodes. Returns list of shows that episodes belong to.
+    episodes.
 
-        Returns:
-
+        Returns -> List:
+            result[0]           Total number of upcoming episodes found and added or
+                                updated in the database through the api call.
+            result[1]           Number of new shows found and added to the database.
     """
 
     # Initialize things to prep for api calls
@@ -172,9 +160,13 @@ def _add_update_upcoming_episodes(db, config):
 
     # Get list of already enabled shows from database
     enabled_show_ids = []
+    disabled_show_ids = []
     enabled_shows = db.get_shows()
+    disabled_shows = db.get_shows(enabled="disabled")
     for show in enabled_shows:
         enabled_show_ids.append(show.id)
+    for show in disabled_shows:
+        disabled_show_ids.append(show.id)
 
     # Initialize things to filter out unwanted shows
     countries = config.countries
@@ -189,6 +181,7 @@ def _add_update_upcoming_episodes(db, config):
             elif (
                 show["countryOfOrigin"] in countries
                 and str_to_showtype(show["format"]) in types
+                and show["id"] not in disabled_show_ids
             ):
                 debug("Found new show {}. Adding to database.".format(show["id"]))
 
