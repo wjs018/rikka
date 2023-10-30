@@ -8,7 +8,7 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
 
 - [Requirements](https://github.com/wjs018/rikka#requirements)
 - [Design Notes](https://github.com/wjs018/rikka#design-notes)
-- [Configuration and Operation](https://github.com/wjs018/rikka#megathread-configuration)
+- [Megathread Configuration](https://github.com/wjs018/rikka#megathread-configuration)
 - [Modules](https://github.com/wjs018/rikka#modules)
   - [setup](https://github.com/wjs018/rikka#the-setup-module)
   - [add](https://github.com/wjs018/rikka#the-add-module)
