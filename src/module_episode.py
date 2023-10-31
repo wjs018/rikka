@@ -329,7 +329,7 @@ def _handle_episode_post(db, config, episode):
     # This is not a new show, so check past episode's engagement
     debug("Previous episode found, checking engagement metrics.")
     min_engagement = [config.min_upvotes, config.min_comments]
-    engagement = lemmy.get_engagement(episode.link)
+    engagement = lemmy.get_engagement(most_recent.link)
     met_threshold = all(list(x >= y for x, y in zip(engagement, min_engagement)))
 
     # If we met the threshold, disable megathread status, make the post, and return True
