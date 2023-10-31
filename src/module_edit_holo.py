@@ -2,9 +2,9 @@
 
 import re
 import yaml
-from logging import debug, info, exception, error
+from logging import info, exception, error
 
-from helper_functions import add_update_show_by_id
+from helper_functions import add_update_shows_by_id
 
 
 def main(config, db, *args, **kwargs):
@@ -32,10 +32,8 @@ def _edit_with_file(db, ratelimit, edit_file):
         exception("Failed to parse edit file")
         return False
 
-    retries = {}
-
-    for doc in parsed:
-        retries[doc["title"]] = 0
+    found_ids = []
+    anilist_expression = re.compile(r"\/anime\/[\d]*")
 
     for doc in parsed:
         anilist_url = doc["info"]["anilist"]
@@ -48,26 +46,17 @@ def _edit_with_file(db, ratelimit, edit_file):
             )
             continue
 
-        anilist_expression = re.compile(r"\/anime\/[\d]*")
-
         match = re.search(anilist_expression, anilist_url)
         anilist_id = match.group()[7:]
+        found_ids.append(anilist_id)
 
         info("Found show with AniList id {}".format(anilist_id))
 
-        show = add_update_show_by_id(db, anilist_id, ratelimit)
+    added_shows = add_update_shows_by_id(db, found_ids, ratelimit)
 
-        if not show:
-            if retries[doc["title"]] > 3:
-                error("Failed getting show info 3 times, skipping")
-                continue
+    if not added_shows:
+        error("Problem adding shows from yaml file.")
 
-            error(
-                "Problem adding show, have retried {} times".format(
-                    retries[doc["title"]]
-                )
-            )
-            retries[doc["title"]] += 1
-            parsed.append(doc)
+    info("Successfully added {} shows to the database.".format(added_shows))
 
     return True

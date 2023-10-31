@@ -2,13 +2,14 @@
 
 from logging import info, error, debug
 
-from helper_functions import add_update_show_by_id
+from helper_functions import add_update_shows_by_id
 
 
 def main(config, db, *args, **kwargs):
     """Update show information in the database."""
 
     show_id = None
+    show_ids = []
 
     if len(args) == 0:
         enabled = "enabled"
@@ -26,24 +27,15 @@ def main(config, db, *args, **kwargs):
         debug("Fetching list of shows from database. enable set to {}".format(enabled))
         shows = db.get_shows(enabled=enabled)
 
-    retries = {}
-
     for show in shows:
-        retries[show.id] = 0
+        show_ids.append(show.id)
 
     info("Updating {} shows in the database".format(len(shows)))
-    for show in shows:
-        updated_show = add_update_show_by_id(
-            db=db, show_id=show.id, ratelimit=config.ratelimit
+
+    num_shows = add_update_shows_by_id(db, show_ids, config.ratelimit)
+
+    if num_shows != len(shows):
+        error(
+            "Number of updated shows does not match number of api queries. Some were \
+            likely skipped due to bad api responses."
         )
-
-        if not updated_show:
-            if retries[show.id] >= 3:
-                error("Failed getting show info 3 times, skipping")
-                continue
-
-            error(
-                "Problem updating show, have retried {} times".format(retries[show.id])
-            )
-            retries[show.id] += 1
-            shows.append(show)

@@ -9,9 +9,13 @@ from config import min_ns, api_call_times
 
 URL = "https://graphql.anilist.co"
 
-show_query = """
-query ($id: Int) {
-  Media (id: $id) {
+paged_show_query = """
+query ($page: Int, $id_in: [Int]) {
+  Page (page: $page, perPage: 25) {
+    pageInfo {
+      hasNextPage
+    }
+    media (id_in: $id_in) {
     id
     idMal
     title {
@@ -23,74 +27,85 @@ query ($id: Int) {
     synonyms
     isAdult
     status
+    }
   }
 }
 """
 
 
-def add_update_show_by_id(db, show_id, ratelimit=60, enabled=True):
+def add_update_shows_by_id(db, show_ids, ratelimit=60, enabled=True):
     """
-    Either adds a show with given id if it isn't already in the database or updates an
-    existing show in the database with fresh info from AniList.
+    Either adds shows in the given id list if it isn't already in the database, or
+    updates an existing show if it is already in the database with fresh info from
+    AniList.
 
-        Parameters:
-            db              DatabaseDatabase object
-            show_id         AniList id for the show
-            ratelimit       requests/min to limit api calls to
-            enabled         Enabled/Disabled status of show to set
-
-        Returns:
-            show            Show object that has been added/updated in the database.
-                            Will return None if it could not execute properly.
+    Returns the number of shows updated.
     """
 
-    debug("Adding/Updating show with id {}".format(show_id))
+    page = 1
+    raw_shows = []
+    retries = {}
 
-    raw_show = get_show_info(show_id, ratelimit=ratelimit)
+    while True:
+        response = _get_shows_info(page, show_ids, ratelimit)
 
-    if not raw_show:
-        error("Could not fetch show info from AniList.")
-        return None
+        if response == "bad response":
+            debug(
+                "Bad response when getting upcoming episodes. Tried {} times".format(
+                    retries.get(page, 0)
+                )
+            )
 
-    db_show = check_if_exists(db, show_id=show_id)
+            retries[page] = retries.get(page, 0) + 1
 
-    if db_show:
-        debug("Found show in database, updating")
-        db.update_show(show_id=show_id, raw_show=raw_show, commit=True)
-    else:
-        debug("Did not find show in database, adding it")
-        db.add_show(raw_show=raw_show, commit=True)
+            if retries[page] >= 3:
+                debug(
+                    "Retried {} times. Skipping and proceeding.".format(retries[page])
+                )
+                page += 1
 
-    show = db.get_show(show_id)
+            continue
 
-    # Make sure show is disabled if set to be so
-    if not enabled:
-        debug("Disabling show")
-        db.set_show_enabled(show, enabled=False, commit=True)
+        raw_shows.extend(response[1])
 
-    for alias in raw_show.more_names:
-        debug("Adding alias for show id {} as {}".format(raw_show.media_id, alias))
-        add_alias(db=db, show_id=show_id, alias=alias, commit=True)
+        if not response[0]:
+            break
 
-    return show
+        page += 1
+
+    for raw_show in raw_shows:
+        db_show = check_if_exists(db, raw_show.media_id)
+        if db_show:
+            debug("Found show in database, updating")
+            db.update_show(raw_show.media_id, raw_show, commit=True)
+        else:
+            debug("Did not find show in database, adding it")
+            db.add_show(raw_show, commit=True)
+
+        if not enabled:
+            debug("Disabling show")
+            show = db.get_show(raw_show.media_id)
+            db.set_show_enabled(show, enabled=False, commit=True)
+
+        for alias in raw_show.more_names:
+            debug("Adding alias for show id {} as {}".format(raw_show.media_id, alias))
+            add_alias(db, raw_show.media_id, alias, commit=True)
+
+    return len(raw_shows)
 
 
-def get_show_info(media_id, ratelimit=60):
+def _get_shows_info(page, show_ids, ratelimit=60):
     """
-    Gets show info from AniList with given id.
+    Pulls media information from the AniList api.
 
-        Parameters:
-            media_id        int corresponding to the AniList id
-            ratelimit       Number of requests/minute to limit api calls to
-
-        Returns:
-            raw_show        UnprocessedShow object for the show. Will return
-                            None in case of a problem with the request.
+        Returns -> List:
+            result[0]           Boolean indicating whether there is another page of
+                                results. Pulled directly from the api.
+            result[1]           List of UnprocessedShow objects from the api call.
     """
 
-    variables = {"id": media_id}
+    variables = {"page": page, "id_in": show_ids}
 
-    # Check api call times to make sure we stay under the ratelimit
     while len(api_call_times) >= ratelimit:
         oldest_call = api_call_times.pop()
         current_time = time.time_ns()
@@ -110,55 +125,56 @@ def get_show_info(media_id, ratelimit=60):
 
     # Make the HTTP API request
     try:
-        info("Making request to AniList for show id {}".format(media_id))
+        debug("Making request to AniList for airing times of upcoming shows")
         debug("Current length of deque is {}".format(len(api_call_times)))
         api_call_times.appendleft(time.time_ns())
         response = requests.post(
-            URL, json={"query": show_query, "variables": variables}, timeout=5.0
+            URL,
+            json={"query": paged_show_query, "variables": variables},
+            timeout=5.0,
         )
     except:
-        error("Bad response from request")
-        return None
+        error("Bad response from request for airing times")
+        return "bad response"
 
-    # Request went ok
-    if response.ok:
-        debug("Fetched show with id {} info from AniList".format(media_id))
-    else:
-        error("Bad response from request")
-        return None
+    response = response.json()
+    has_next_page = response["data"]["Page"]["pageInfo"]["hasNextPage"]
 
-    json_resp = response.json()["data"]["Media"]
+    found_shows_resp = response["data"]["Page"]["media"]
 
-    # Extract the show info from the dict
-    show_media_id = media_id
-    show_id_mal = json_resp["idMal"]
-    show_name = json_resp["title"]["romaji"]
-    show_name_en = json_resp["title"]["english"]
-    show_more_names = json_resp["synonyms"]
-    show_show_type = json_resp["format"]
-    show_has_source = int(json_resp["source"] != "ORIGINAL")
-    show_is_nsfw = int(json_resp["isAdult"])
-    show_status = json_resp["status"]
+    found_shows = []
 
-    if show_status in ["FINISHED", "CANCELLED"]:
-        show_status = False
-    else:
-        show_status = True
+    for show in found_shows_resp:
+        media_id = show["id"]
+        id_mal = show["idMal"]
+        name = show["title"]["romaji"]
+        name_en = show["title"]["english"]
+        more_names = show["synonyms"]
+        show_type = show["format"]
+        has_source = int(show["source"] != "ORIGINAL")
+        is_nsfw = int(show["isAdult"])
+        status = show["status"]
 
-    # Create the UnprocessedShow
-    raw_show = UnprocessedShow(
-        media_id=show_media_id,
-        id_mal=show_id_mal,
-        name=show_name,
-        name_en=show_name_en,
-        more_names=show_more_names,
-        show_type=show_show_type,
-        has_source=show_has_source,
-        is_nsfw=show_is_nsfw,
-        is_airing=show_status,
-    )
+        if status in ["FINISHED", "CANCELLED"]:
+            status = False
+        else:
+            status = True
 
-    return raw_show
+        raw_show = UnprocessedShow(
+            media_id=media_id,
+            id_mal=id_mal,
+            name=name,
+            name_en=name_en,
+            more_names=more_names,
+            show_type=show_type,
+            has_source=has_source,
+            is_nsfw=is_nsfw,
+            is_airing=status,
+        )
+
+        found_shows.append(raw_show)
+
+    return [has_next_page, found_shows]
 
 
 def check_if_exists(db, show_id):

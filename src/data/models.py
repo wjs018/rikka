@@ -126,6 +126,12 @@ class UnprocessedShow:
         self.media_id = media_id
         self.id_mal = id_mal
         self.name = name
+
+        # Some api calls return english title of "NULL"
+        if name_en:
+            if name_en.lower() == "null":
+                name_en = ""
+
         self.name_en = name_en
         self.more_names = more_names
         self.show_type = str_to_showtype(show_type).value

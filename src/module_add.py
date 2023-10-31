@@ -3,9 +3,9 @@ Module to add a show to the database, update its information and enable
 discussion threads for it.
 """
 
-from logging import debug, info, warning, error
+from logging import info, warning, error
 
-from helper_functions import add_update_show_by_id
+from helper_functions import add_update_shows_by_id
 
 
 def main(config, db, *args, **kwargs):
@@ -13,7 +13,7 @@ def main(config, db, *args, **kwargs):
 
     if len(args) == 1:
         info("Trying to add show with id {}".format(args[0]))
-        show = add_update_show_by_id(db, show_id=args[0], ratelimit=config.ratelimit)
+        show = add_update_shows_by_id(db, [args[0]], ratelimit=config.ratelimit)
 
         if not show:
             error("Problem adding show with id {}".format(args[0]))

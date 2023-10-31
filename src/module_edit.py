@@ -3,7 +3,7 @@
 import yaml
 from logging import debug, info, exception, error
 
-from helper_functions import add_update_show_by_id
+from helper_functions import add_update_shows_by_id
 
 
 def main(config, db, *args, **kwargs):
@@ -39,41 +39,22 @@ def _edit_with_file(db, ratelimit, edit_file):
         )
     )
 
-    retries = {}
+    enabled_done = True
+    disabled_done = True
 
-    for show_id in enabled_list:
-        retries[show_id] = 0
-    for show_id in disabled_list:
-        retries[show_id] = 0
-
-    for show_id in enabled_list:
-        debug("Adding show from yaml file with id {}".format(show_id))
-        show = add_update_show_by_id(db=db, show_id=show_id, ratelimit=ratelimit)
-
-        if not show:
-            if retries[show_id] > 3:
-                error("Failed getting show info 3 times, skipping")
-                continue
-
-            error("Problem adding show, have retried {} times".format(retries[show_id]))
-            retries[show_id] += 1
-            enabled_list.append(show_id)
-
-    for show_id in disabled_list:
-        debug(
-            "Adding show from yaml file with id {} in a disabled state".format(show_id)
+    if enabled_list:
+        enabled_shows = add_update_shows_by_id(
+            db, enabled_list, ratelimit, enabled=True
         )
-        show = add_update_show_by_id(
-            db=db, show_id=show_id, ratelimit=ratelimit, enabled=False
+        enabled_done = len(enabled_list) == enabled_shows
+    if disabled_list:
+        disabled_shows = add_update_shows_by_id(
+            db, disabled_list, ratelimit, enabled=False
         )
+        disabled_done = len(disabled_list) == disabled_shows
 
-        if not show:
-            if retries[show_id] > 3:
-                error("Failed getting show info 3 times, skipping")
-                continue
-
-            error("Problem adding show, have retried {} times".format(retries[show_id]))
-            retries[show_id] += 1
-            disabled_list.append(show_id)
+    if not enabled_done or not disabled_done:
+        error("Number of added shows does not match parsed yaml.")
+        return False
 
     return True
