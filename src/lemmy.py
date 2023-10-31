@@ -64,13 +64,13 @@ def _get_host_instance():
 # Thing doing
 
 
-def submit_text_post(community, title, body):
+def submit_text_post(community, title, body, nsfw):
     _ensure_connection()
     info(f"Submitting post to {community}")
     community_id = _l.discover_community(community)
     if not community_id:
         exception(f"Community {community} not found")
-    response = _l.post.create(community_id, title, body=body)
+    response = _l.post.create(community_id, title, body=body, nsfw=nsfw)
     return _extract_post_response(response)
 
 

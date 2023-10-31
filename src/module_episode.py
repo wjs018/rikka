@@ -356,9 +356,12 @@ def _handle_episode_post(db, config, episode):
 def _create_standalone_post(db, config, episode):
     """Create a standalone episode discussion post."""
 
+    show = db.get_show(episode.media_id)
+    nsfw = bool(show.is_nsfw)
+
     title, body = _create_post_contents(config, db, episode)
 
-    post_url = _create_post(config, title, body, submit=config.submit)
+    post_url = _create_post(config, title, body, nsfw, submit=config.submit)
 
     if post_url:
         post_url.replace("http:", "https:")
@@ -423,6 +426,9 @@ def _handle_megathread(db, config, episode):
 def _create_megathread(db, config, episode, number=1):
     """Creates a new megathread for the given episode's show."""
 
+    show = db.get_show(episode.media_id)
+    nsfw = bool(show.is_nsfw)
+
     title = _create_megathread_title(config, db, episode)
     title = _format_post_text(config, db, episode, title)
 
@@ -431,7 +437,7 @@ def _create_megathread(db, config, episode, number=1):
     body = _format_post_text(config, db, episode, config.megathread_body)
 
     if config.submit:
-        new_post = lemmy.submit_text_post(config.l_community, title, body)
+        new_post = lemmy.submit_text_post(config.l_community, title, body, nsfw)
         if new_post:
             url = lemmy.get_shortlink_from_id(new_post["id"])
             info("Megathread made at {}".format(url))
@@ -481,11 +487,11 @@ def _get_aired_episodes(db, current_time):
     return aired
 
 
-def _create_post(config, title, body, submit=True):
+def _create_post(config, title, body, nsfw, submit=True):
     """Creates the discussion post on Lemmy."""
 
     if submit:
-        new_post = lemmy.submit_text_post(config.l_community, title, body)
+        new_post = lemmy.submit_text_post(config.l_community, title, body, nsfw)
         if new_post is not None:
             debug("Post successful")
             return lemmy.get_shortlink_from_id(new_post["id"])
