@@ -395,7 +395,8 @@ def _handle_megathread(db, config, episode):
     # There is a previous megathread, check number of episodes it has
     if megathread.num_episodes >= config.megathread_episodes:
         info("Maximum number of episodes in past megathread, creating a new one")
-        megathread = _create_megathread(db, config, episode)
+        number = megathread.thread_num + 1
+        megathread = _create_megathread(db, config, episode, number)
         if not megathread:
             return False
 
@@ -541,6 +542,12 @@ def _format_post_text(config, db, aired_episode, text):
     formats = config.post_formats
 
     show = db.get_show(aired_episode.media_id)
+    megathread = db.get_latest_megathread(show.id)
+
+    if megathread:
+        megathread_number = megathread.thread_num
+    else:
+        megathread_number = "1"
 
     if "{spoiler}" in text:
         text = safe_format(text, spoiler=_gen_text_spoiler(formats, show))
@@ -554,6 +561,7 @@ def _format_post_text(config, db, aired_episode, text):
         show_name=show.name,
         show_name_en=show.name_en,
         episode=aired_episode.number,
+        megathread_number=megathread_number,
     )
     return text.strip()
 

@@ -293,6 +293,10 @@ class DatabaseDatabase:
         name = raw_show.name
         name_en = raw_show.name_en
 
+        # None is written to db as NULL and can sometimes end up in posts, just use ""
+        if not name_en:
+            name_en = ""
+
         if name_en:
             if name_en.lower() == name.lower():
                 name_en = ""
@@ -339,6 +343,10 @@ class DatabaseDatabase:
         id_mal = raw_show.id_mal
         name = raw_show.name
         name_en = raw_show.name_en
+
+        # None is written to db as NULL and can sometimes end up in posts, just use ""
+        if not name_en:
+            name_en = ""
 
         if name_en:
             if name_en.lower() == name.lower():

@@ -37,7 +37,9 @@ min_comments = 1
 title = {show_name} - Episode {episode} discussion
 title_with_en = {show_name} • {show_name_en} - Episode {episode} discussion
 
-format_spoiler = **Reminder:** Please do not discuss plot points not yet seen or skipped in the show. Failing to follow the rules may result in a ban.
+format_spoiler =
+    ---
+    **Reminder:** Please do not discuss plot points not yet seen or skipped in the show. Failing to follow the rules may result in a ban.
 format_link = * [{site_name}]({link})
 format_discussion_header = Episode|Link
 format_discussion_align = :-:|:-:
@@ -71,11 +73,11 @@ post_body =
 [megathread]
 # Maximum number of episodes to include in one megathread before creating a new one
 megathread_episodes = 12
-megathread_title = {show_name} - Megathread
-megathread_title_with_en = {show_name} • {show_name_en} - Megathread
+megathread_title = {show_name} - Megathread {megathread_number}
+megathread_title_with_en = {show_name} • {show_name_en} - Megathread {megathread_number}
 
 megathread_body =
-    *{show_name}* Megathread
+    *{show_name}* Megathread {megathread_number}
 
     {aliases}
 
