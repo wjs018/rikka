@@ -15,6 +15,7 @@ from data.models import (
     str_to_showtype,
     Megathread,
     Episode,
+    ShowType,
 )
 
 
@@ -555,10 +556,26 @@ def _create_post_title(config, db, aired_episode):
 
     show = db.get_show(aired_episode.media_id)
 
-    if show.name_en:
-        title = config.post_title_with_en
+    if show.show_type == ShowType.MOVIE:
+        title = _create_movie_post_title(config, db, aired_episode)
     else:
-        title = config.post_title
+        if show.name_en:
+            title = config.post_title_with_en
+        else:
+            title = config.post_title
+
+    return title
+
+
+def _create_movie_post_title(config, db, aired_episode):
+    """Construct the post title for a movie post"""
+
+    show = db.get_show(aired_episode.media_id)
+
+    if show.name_en:
+        title = config.movie_title_with_en
+    else:
+        title = config.movie_title
 
     return title
 

@@ -40,6 +40,9 @@ engagement_lag = 24
 title = {show_name} - Episode {episode} discussion
 title_with_en = {show_name} • {show_name_en} - Episode {episode} discussion
 
+movie_title = {show_name} - Movie Discussion
+movie_title_with_en = {show_name} • {show_name_en} - Movie Discussion
+
 format_spoiler =
     ---
     **Reminder:** Please do not discuss plot points not yet seen or skipped in the show. Failing to follow the rules may result in a ban.

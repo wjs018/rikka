@@ -50,6 +50,8 @@ class Config:
         # post section
         self.post_title = None
         self.post_title_with_en = None
+        self.movie_title = None
+        self.movie_title_with_en = None
         self.post_body = None
         self.post_formats = dict()
 
@@ -117,6 +119,8 @@ def from_file(file_path):
         sec = parsed["post"]
         config.post_title = sec.get("title", None)
         config.post_title_with_en = sec.get("title_with_en", None)
+        config.movie_title = sec.get("movie_title", None)
+        config.movie_title_with_en = sec.get("movie_title_with_en", None)
         config.post_body = sec.get("post_body", None)
         for key in sec:
             if key.startswith("format_") and len(key) > 7:
