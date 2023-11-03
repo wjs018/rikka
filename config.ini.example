@@ -76,6 +76,18 @@ post_body =
     *This post was created by a bot. Message the mod team for feedback and comments.*
     *The original source code can be found on [GitHub](https://github.com/wjs018/rikka).*
 
+movie_post_body = 
+    *{show_name}* - Movie Discussion
+
+    {aliases}
+    
+    {spoiler}
+    
+    ---
+    
+    *This post was created by a bot. Message the mod team for feedback and comments.*
+    *The original source code can be found on [GitHub](https://github.com/wjs018/rikka).*
+
 [megathread]
 # Maximum number of episodes to include in one megathread before creating a new one
 megathread_episodes = 12

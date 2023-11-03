@@ -543,10 +543,18 @@ def _edit_post(config, db, aired_episode, url, submit=True):
 def _create_post_contents(config, db, aired_episode, submit=True):
     """Make the discussion post contents for the aired episode."""
 
-    post_title = _create_post_title(config, db, aired_episode)
-    post_title = _format_post_text(config, db, aired_episode, post_title)
+    show = db.get_show(aired_episode.media_id)
 
-    post_body = _format_post_text(config, db, aired_episode, config.post_body)
+    if show.show_type == ShowType.MOVIE:
+        post_title = _create_movie_post_title(config, db, aired_episode)
+        post_title = _format_post_text(config, db, aired_episode, post_title)
+
+        post_body = _format_post_text(config, db, aired_episode, config.movie_post_body)
+    else:
+        post_title = _create_post_title(config, db, aired_episode)
+        post_title = _format_post_text(config, db, aired_episode, post_title)
+
+        post_body = _format_post_text(config, db, aired_episode, config.post_body)
 
     return post_title, post_body
 
@@ -556,13 +564,10 @@ def _create_post_title(config, db, aired_episode):
 
     show = db.get_show(aired_episode.media_id)
 
-    if show.show_type == ShowType.MOVIE:
-        title = _create_movie_post_title(config, db, aired_episode)
+    if show.name_en:
+        title = config.post_title_with_en
     else:
-        if show.name_en:
-            title = config.post_title_with_en
-        else:
-            title = config.post_title
+        title = config.post_title
 
     return title
 

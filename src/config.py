@@ -53,6 +53,7 @@ class Config:
         self.movie_title = None
         self.movie_title_with_en = None
         self.post_body = None
+        self.movie_post_body = None
         self.post_formats = dict()
 
         # megathread section
@@ -122,6 +123,7 @@ def from_file(file_path):
         config.movie_title = sec.get("movie_title", None)
         config.movie_title_with_en = sec.get("movie_title_with_en", None)
         config.post_body = sec.get("post_body", None)
+        config.movie_post_body = sec.get("movie_post_body", None)
         for key in sec:
             if key.startswith("format_") and len(key) > 7:
                 config.post_formats[key[7:]] = sec[key]
