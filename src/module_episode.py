@@ -2,6 +2,7 @@
 
 import time
 import requests
+import datetime
 
 from logging import debug, info, error
 
@@ -314,6 +315,9 @@ def _handle_episode_post(db, config, episode):
                     new megathread and then a top-level comment in that thread
     """
 
+    created_post = False
+    megathread_handled = False
+
     # First, fetch previous episode, if it exists
     show = db.get_show(id=episode.media_id)
     most_recent = db.get_latest_episode(show)
@@ -325,6 +329,29 @@ def _handle_episode_post(db, config, episode):
         if created_post:
             return True
         return False
+
+    # This isn't a new show, check if the previous episode was posted too recently for
+    # engagement to be considered
+    most_recent_time = lemmy.get_publish_time(most_recent.link)
+    current_time = datetime.datetime.utcnow()
+    elapsed = current_time - most_recent_time
+    engagement_lag = config.engagement_lag * 3600
+
+    if elapsed.total_seconds() <= engagement_lag:
+        # Not enough time has passed since the last post, only put in a megathread if
+        # previous post was also in a megathread
+        info("Not enough elapsed time since last post. Ignoring engagement metrics.")
+        if lemmy.is_comment_url(most_recent.link):
+            megathread_handled = _handle_megathread(db, config, episode)
+        elif lemmy.is_post_url(most_recent.link):
+            created_post = _create_standalone_post(db, config, episode)
+
+        if megathread_handled:
+            return True
+        elif created_post:
+            return True
+        else:
+            return False
 
     # This is not a new show, so check past episode's engagement
     debug("Previous episode found, checking engagement metrics.")

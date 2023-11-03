@@ -1,7 +1,8 @@
 """Module for interacting with Lemmy"""
 
-from logging import debug, info, warning, error, exception
+from logging import info, error, exception
 from pythorhead import Lemmy
+from dateutil.parser import parse
 
 # Initialization
 
@@ -231,3 +232,53 @@ def get_shortlink_from_id(id):
 
 def get_commentlink_from_id(id):
     return f"{_get_host_instance()}/comment/{id}"
+
+
+def get_publish_time(url):
+    """Return a datetime object with the publish time from a post or comment's url."""
+
+    _ensure_connection()
+
+    if is_post_url(url):
+        publish_time = get_post_time(url)
+    elif is_comment_url(url):
+        publish_time = get_comment_time(url)
+    else:
+        exception("Malformed url to get publish time.")
+        return None
+
+    return publish_time
+
+
+def get_post_time(url):
+    """Return a datetime object with the publish time from a post's url."""
+
+    _ensure_connection()
+    post_id = _get_post_id_from_shortlink(url)
+
+    try:
+        response = _l.post.get(post_id)
+    except:
+        exception("Failed to retrieve post")
+        return None
+
+    publish_time = parse(response["post_view"]["post"]["published"])
+
+    return publish_time
+
+
+def get_comment_time(url):
+    """Return a datetime object with the publish time from a comment's url."""
+
+    _ensure_connection()
+    comment_id = _get_post_id_from_shortlink(url)
+
+    try:
+        response = _l.comment.get(comment_id)
+    except:
+        exception("Failed to retrieve post")
+        return None
+
+    publish_time = parse(response["comment_view"]["comment"]["published"])
+
+    return publish_time

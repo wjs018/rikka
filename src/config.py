@@ -39,6 +39,7 @@ class Config:
         self.show_discovery = False
         self.min_upvotes = None
         self.min_comments = None
+        self.engagement_lag = None
 
         # lemmy section
         self.l_community = None
@@ -96,6 +97,7 @@ def from_file(file_path):
         config.show_discovery = sec.getboolean("show_discovery", False)
         config.min_upvotes = sec.getint("min_upvotes", 1)
         config.min_comments = sec.getint("min_comments", 0)
+        config.engagement_lag = sec.getint("engagement_lag", 24)
 
         config.new_show_types.extend(
             map(

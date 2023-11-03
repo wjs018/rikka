@@ -32,6 +32,9 @@ min_upvotes = 1
 # Setting this to <= 0 will disable this requirement since there can't be fewer than 0
 # comments
 min_comments = 1
+# Number of hours that need to have elapsed before engagement on previous episode is 
+# considered, default of 24
+engagement_lag = 24
 
 [post]
 title = {show_name} - Episode {episode} discussion

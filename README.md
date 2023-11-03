@@ -30,6 +30,7 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
 - `unidecode`
 - `requests`
 - `pyyaml`
+- `python-dateutil`
 - `pythorhead` >= 0.18.0
 
 ## Design notes
@@ -124,7 +125,7 @@ python src/rikka.py -m remove
 
 ### The `update` Module
 
-The update module will fetch updated show information from the AniList API and populate the database with it. By default, it will only update the shows that are marked as enabled in the database. This can be modified through the cli. Additionally, if the show is marked as finished airing or cancelled by AniList when the api call is made, the show will be disabled in the rikka database.
+The update module will fetch updated show information from the AniList API and populate the database with it. By default, it will only update the shows that are marked as enabled in the database. This can be modified through the cli. Additionally, if the show is marked as finished airing or cancelled by AniList when the api call is made, the show will be disabled in the rikka database. Conversely, if you choose to update all or disabled shows, then shows that you have manually marked as disabled may be re-enabled through the update if they are still airing.
 
 #### Update only enabled shows information
 
