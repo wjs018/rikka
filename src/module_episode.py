@@ -2,9 +2,9 @@
 
 import time
 import requests
-import datetime
 
 from logging import debug, info, error
+from datetime import datetime, timezone
 
 import lemmy
 from config import min_ns, api_call_times
@@ -14,7 +14,6 @@ from data.models import (
     UnprocessedShow,
     str_to_showtype,
     Megathread,
-    Episode,
     ShowType,
 )
 
@@ -334,7 +333,7 @@ def _handle_episode_post(db, config, episode):
     # This isn't a new show, check if the previous episode was posted too recently for
     # engagement to be considered
     most_recent_time = lemmy.get_publish_time(most_recent.link)
-    current_time = datetime.datetime.utcnow()
+    current_time = datetime.now(timezone.utc)
     elapsed = current_time - most_recent_time
     engagement_lag = config.engagement_lag * 3600
 
