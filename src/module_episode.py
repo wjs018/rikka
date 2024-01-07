@@ -555,7 +555,7 @@ def _create_post_contents(config, db, aired_episode, submit=True):
 
         post_body = _format_post_text(config, db, aired_episode, config.post_body)
 
-    return post_title, post_body
+    return post_title[:198], post_body
 
 
 def _create_post_title(config, db, aired_episode):
