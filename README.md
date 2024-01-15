@@ -31,7 +31,7 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
 - `requests`
 - `pyyaml`
 - `python-dateutil`
-- `pythorhead` >= 0.18.0
+- `pythorhead` >= 0.20.0
 
 ## Design notes
 
