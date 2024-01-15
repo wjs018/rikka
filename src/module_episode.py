@@ -458,7 +458,7 @@ def _create_megathread(db, config, episode, number=1):
     nsfw = bool(show.is_nsfw)
 
     title = _create_megathread_title(config, db, episode)
-    title = _format_post_text(config, db, episode, title)
+    title = _format_post_text(config, db, episode, title)[:198]
 
     info("Post title:\n{}".format(title))
 
