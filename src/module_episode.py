@@ -458,7 +458,11 @@ def _create_megathread(db, config, episode, number=1):
     nsfw = bool(show.is_nsfw)
 
     title = _create_megathread_title(config, db, episode)
-    title = _format_post_text(config, db, episode, title)[:198]
+    title = _format_post_text(config, db, episode, title)
+
+    if len(title) >= 198:
+        title = _create_megathread_title(config, db, episode, include_english=False)
+        title = _format_post_text(config, db, episode, title)[:198]
 
     info("Post title:\n{}".format(title))
 
@@ -481,12 +485,12 @@ def _create_megathread(db, config, episode, number=1):
     return False
 
 
-def _create_megathread_title(config, db, episode):
+def _create_megathread_title(config, db, episode, include_english=True):
     """Create the title for a megathread"""
 
     show = db.get_show(episode.media_id)
 
-    if show.name_en:
+    if show.name_en and include_english:
         title = config.megathread_title_with_en
     else:
         title = config.megathread_title
@@ -539,31 +543,47 @@ def _edit_post(config, db, aired_episode, url, submit=True):
     return None
 
 
-def _create_post_contents(config, db, aired_episode, submit=True):
+def _create_post_contents(config, db, aired_episode, submit=True, include_english=True):
     """Make the discussion post contents for the aired episode."""
 
     show = db.get_show(aired_episode.media_id)
 
     if show.type == ShowType.MOVIE:
-        post_title = _create_movie_post_title(config, db, aired_episode)
+        post_title = _create_movie_post_title(
+            config, db, aired_episode, include_english=include_english
+        )
         post_title = _format_post_text(config, db, aired_episode, post_title)
+
+        if len(post_title) >= 198:
+            post_title = _create_movie_post_title(
+                config, db, aired_episode, include_english=False
+            )
+            post_title = _format_post_text(config, db, aired_episode, post_title)
 
         post_body = _format_post_text(config, db, aired_episode, config.movie_post_body)
     else:
-        post_title = _create_post_title(config, db, aired_episode)
+        post_title = _create_post_title(
+            config, db, aired_episode, include_english=include_english
+        )
         post_title = _format_post_text(config, db, aired_episode, post_title)
+
+        if len(post_title) >= 198:
+            post_title = _create_post_title(
+                config, db, aired_episode, include_english=False
+            )
+            post_title = _format_post_text(config, db, aired_episode, post_title)
 
         post_body = _format_post_text(config, db, aired_episode, config.post_body)
 
     return post_title[:198], post_body
 
 
-def _create_post_title(config, db, aired_episode):
+def _create_post_title(config, db, aired_episode, include_english=True):
     """Construct the post title"""
 
     show = db.get_show(aired_episode.media_id)
 
-    if show.name_en:
+    if show.name_en and include_english:
         title = config.post_title_with_en
     else:
         title = config.post_title
@@ -571,12 +591,12 @@ def _create_post_title(config, db, aired_episode):
     return title
 
 
-def _create_movie_post_title(config, db, aired_episode):
+def _create_movie_post_title(config, db, aired_episode, include_english=True):
     """Construct the post title for a movie post"""
 
     show = db.get_show(aired_episode.media_id)
 
-    if show.name_en:
+    if show.name_en and include_english:
         title = config.movie_title_with_en
     else:
         title = config.movie_title
