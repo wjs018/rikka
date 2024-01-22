@@ -12,8 +12,9 @@ password = your_password
 debug = false
 # Types of shows to auto-discover. possible options from AniList api include:
 # TV, TV_SHORT, MOVIE, SPECIAL, OVA, ONA, MUSIC
-# default of tv ona
-new_show_types = tv tv_short movie special ova ona music
+# default: tv ona
+# options are: tv tv_short movie special ova ona music
+new_show_types = tv ona
 # Two letter code for countries to include shows from. e.g. JP CN. Default is JP
 # See https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2 for full list
 countries = JP
@@ -24,14 +25,14 @@ submit = true
 # Number of days to look ahead for upcoming episodes, default of 7 if unspecified
 days = 10
 # Enable or disable discovery of new shows, default false
-show_discovery = true
+show_discovery = false
 # Minimum number of upvotes needed to keep a dedicated discussion post, default of 1
 # Setting this to <= 1 will disable this requirement since there is always >= 1 upvote
 min_upvotes = 1
 # Minimum number of comments needed to keep a dedicated discussion post, default of 0
 # Setting this to <= 0 will disable this requirement since there can't be fewer than 0
 # comments
-min_comments = 1
+min_comments = 0
 # Number of hours that need to have elapsed before engagement on previous episode is 
 # considered, default of 24
 engagement_lag = 24

@@ -462,7 +462,8 @@ def _create_megathread(db, config, episode, number=1):
 
     if len(title) >= 198:
         title = _create_megathread_title(config, db, episode, include_english=False)
-        title = _format_post_text(config, db, episode, title)[:198]
+        title = _format_post_text(config, db, episode, title)
+        title = title[:198]
 
     info("Post title:\n{}".format(title))
 
