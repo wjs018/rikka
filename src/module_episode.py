@@ -458,11 +458,11 @@ def _create_megathread(db, config, episode, number=1):
     nsfw = bool(show.is_nsfw)
 
     title = _create_megathread_title(config, db, episode)
-    title = _format_post_text(config, db, episode, title)
+    title = _format_post_text(config, db, episode, title, thread_num=number)
 
     if len(title) >= 198:
         title = _create_megathread_title(config, db, episode, include_english=False)
-        title = _format_post_text(config, db, episode, title)
+        title = _format_post_text(config, db, episode, title, thread_num=number)
         title = title[:198]
 
     info("Post title:\n{}".format(title))
@@ -605,16 +605,15 @@ def _create_movie_post_title(config, db, aired_episode, include_english=True):
     return title
 
 
-def _format_post_text(config, db, aired_episode, text):
+def _format_post_text(config, db, aired_episode, text, **kwargs):
     """Format the text to substitute placeholders."""
 
     formats = config.post_formats
 
     show = db.get_show(aired_episode.media_id)
-    megathread = db.get_latest_megathread(show.id)
 
-    if megathread:
-        megathread_number = megathread.thread_num
+    if "thread_num" in kwargs:
+        megathread_number = kwargs.get("thread_num")
     else:
         megathread_number = "1"
 
