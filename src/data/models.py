@@ -122,6 +122,7 @@ class UnprocessedShow:
         has_source,
         is_nsfw,
         is_airing,
+        external_links,
     ):
         self.media_id = media_id
         self.id_mal = id_mal
@@ -132,6 +133,7 @@ class UnprocessedShow:
         self.has_source = has_source
         self.is_nsfw = is_nsfw
         self.is_airing = is_airing
+        self.external_links = external_links
 
     def __eq__(self, other):
         return self.media_id == other.media_id
@@ -156,3 +158,26 @@ class Megathread:
         return "Megathread number {} for show id {}, containing {} episodes at link {}".format(
             self.thread_num, self.media_id, self.num_episodes, self.post_url
         )
+
+
+class ExternalLink:
+    """Class used to define an external link for a Show."""
+
+    def __init__(self, media_id, link_type, site, language, url):
+        self.media_id = media_id
+        self.link_type = link_type.capitalize()
+        self.site = site
+        self.language = language
+        self.url = url
+
+    def __str__(self):
+        if self.language:
+            return "{} - {} ({})".format(self.link_type, self.site, self.language)
+        else:
+            return "{} - {}".format(self.link_type, self.site)
+
+    def to_markdown(self):
+        """Generate the markdown for the external link."""
+        text = "- [{}]({})\n".format(str(self), self.url)
+
+        return text

@@ -17,6 +17,7 @@ from .models import (
     Episode,
     UpcomingEpisode,
     Megathread,
+    ExternalLink,
 )
 
 
@@ -189,6 +190,18 @@ class DatabaseDatabase:
         )"""
         )
 
+        self.q.execute(
+            """CREATE TABLE IF NOT EXISTS Links (
+            id              INTEGER NOT NULL,
+            link_type       TEXT,
+            site            TEXT,
+            language        TEXT,
+            url             TEXT,
+            UNIQUE(id, site, language) ON CONFLICT REPLACE,
+            FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
+        )"""
+        )
+
         self._db.commit()
 
     # Shows
@@ -239,6 +252,7 @@ class DatabaseDatabase:
         for show in self.q.fetchall():
             show = Show(*show)
             show.aliases = self.get_aliases(show)
+            show.external_links = self.get_external_links(show.id)
             shows.append(show)
 
         return shows
@@ -262,6 +276,7 @@ class DatabaseDatabase:
             return None
         show = Show(*show)
         show.aliases = self.get_aliases(show)
+        show.external_links = self.get_external_links(show.id)
         return show
 
     @db_error_default(None)
@@ -641,3 +656,49 @@ class DatabaseDatabase:
             "UPDATE Megathreads SET num_episodes = ? WHERE id = ? AND thread_num = ?",
             (new_num_episodes, id, thread_num),
         )
+
+    # External Links
+
+    @db_error
+    def add_external_link(self, external_link: ExternalLink, commit=True):
+        """Add an external link for a given show id."""
+
+        debug("Adding an external link for show id {}".format(external_link.media_id))
+
+        # None is written to db as NULL and can sometimes end up in posts, just use ""
+        if not external_link.language:
+            external_link.language = ""
+
+        self.q.execute(
+            "INSERT INTO Links (id, link_type, site, language, url) VALUES (?, ?, ?, ?, ?)",
+            (
+                external_link.media_id,
+                external_link.link_type,
+                external_link.site,
+                external_link.language,
+                external_link.url,
+            ),
+        )
+
+        if commit:
+            self._db.commit()
+
+    @db_error_default(List)
+    def get_external_links(self, media_id):
+        """Return all the external links for a given id."""
+
+        debug("Fetching all the external links for show id {}".format(media_id))
+
+        external_links = []
+
+        self.q.execute(
+            "SELECT id, link_type, site, language, url FROM Links WHERE id = ? \
+            ORDER BY link_type ASC",
+            (media_id,),
+        )
+
+        for link in self.q.fetchall():
+            external_link = ExternalLink(*link)
+            external_links.append(external_link)
+
+        return external_links

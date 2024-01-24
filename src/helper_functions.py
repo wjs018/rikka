@@ -4,7 +4,7 @@ import time
 import requests
 
 from logging import debug, info, error
-from data.models import UnprocessedShow
+from data.models import UnprocessedShow, ExternalLink
 from config import min_ns, api_call_times
 
 URL = "https://graphql.anilist.co"
@@ -27,6 +27,12 @@ query ($page: Int, $id_in: [Int]) {
     synonyms
     isAdult
     status
+    externalLinks {
+        type
+        site
+        language
+        url
+      }
     }
   }
 }
@@ -91,6 +97,10 @@ def add_update_shows_by_id(db, show_ids, ratelimit=60, enabled=True):
             debug("Adding alias for show id {} as {}".format(raw_show.media_id, alias))
             add_alias(db, raw_show.media_id, alias, commit=True)
 
+        for link in raw_show.external_links:
+            debug("Adding link for show id {}: {}".format(raw_show.media_id, link))
+            db.add_external_link(link, commit=True)
+
     return len(raw_shows)
 
 
@@ -154,6 +164,46 @@ def _get_shows_info(page, show_ids, ratelimit=60):
         has_source = int(show["source"] != "ORIGINAL")
         is_nsfw = int(show["isAdult"])
         status = show["status"]
+        external_links_raw = show["externalLinks"]
+
+        external_links = []
+
+        # Create AniList link
+        anilist_url = "https://anilist.co/anime/" + str(media_id)
+        anilist_link = ExternalLink(
+            media_id=media_id,
+            link_type="INFO",
+            site="AniList",
+            language="",
+            url=anilist_url,
+        )
+        external_links.append(anilist_link)
+
+        # Create MAL link
+        if id_mal:
+            mal_url = "https://myanimelist.net/anime/" + str(id_mal)
+            mal_link = ExternalLink(
+                media_id=media_id,
+                link_type="INFO",
+                site="MyAnimeList",
+                language="",
+                url=mal_url,
+            )
+            external_links.append(mal_link)
+
+        for link in external_links_raw:
+            link_type = link["type"]
+            site = link["site"]
+            language = link["language"]
+            url = link["url"]
+            external_link = ExternalLink(
+                media_id=media_id,
+                link_type=link_type,
+                site=site,
+                language=language,
+                url=url,
+            )
+            external_links.append(external_link)
 
         if status in ["FINISHED", "CANCELLED"]:
             status = False
@@ -170,6 +220,7 @@ def _get_shows_info(page, show_ids, ratelimit=60):
             has_source=has_source,
             is_nsfw=is_nsfw,
             is_airing=status,
+            external_links=external_links,
         )
 
         found_shows.append(raw_show)

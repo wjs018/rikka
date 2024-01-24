@@ -8,10 +8,9 @@ from datetime import datetime, timezone
 
 import lemmy
 from config import min_ns, api_call_times
-from helper_functions import URL
+from helper_functions import URL, add_update_shows_by_id
 from data.models import (
     UpcomingEpisode,
-    UnprocessedShow,
     str_to_showtype,
     Megathread,
     ShowType,
@@ -122,6 +121,7 @@ def _add_update_upcoming_episodes(db, config):
 
     found_episodes = []
     found_shows = []
+    new_show_list = []
     new_shows = 0
     new_episodes = 0
     page = 1
@@ -185,26 +185,11 @@ def _add_update_upcoming_episodes(db, config):
                 and show["id"] not in disabled_show_ids
             ):
                 debug("Found new show {}. Adding to database.".format(show["id"]))
+                new_show_list.append(show["id"])
 
-                parsed_show = UnprocessedShow(
-                    media_id=show["id"],
-                    id_mal=show["idMal"],
-                    name=show["title"]["romaji"],
-                    name_en=show["title"]["english"],
-                    more_names=show["synonyms"],
-                    show_type=show["format"],
-                    has_source=int(show["source"] != "ORIGINAL"),
-                    is_nsfw=int(show["isAdult"]),
-                    is_airing=True,
-                )
-
-                db.add_show(parsed_show)
-                new_shows += 1
-
-                for alias in show["synonyms"]:
-                    db.add_alias(show["id"], alias)
-
-                enabled_show_ids.append(show["id"])
+        added = add_update_shows_by_id(db, new_show_list)
+        new_shows += added
+        enabled_show_ids = enabled_show_ids + new_show_list
 
     # Now with a full list of enabled show ids, add upcoming episodes for those shows
     for episode in found_episodes:
@@ -623,6 +608,8 @@ def _format_post_text(config, db, aired_episode, text, **kwargs):
         text = safe_format(text, discussions=_gen_text_discussions(db, formats, show))
     if "{aliases}" in text:
         text = safe_format(text, aliases=_gen_text_aliases(db, formats, show))
+    if "{links}" in text:
+        text = safe_format(text, links=_gen_text_links(db, formats, show))
 
     text = safe_format(
         text,
@@ -685,6 +672,19 @@ def _gen_text_aliases(db, formats, show):
     if len(aliases) == 0:
         return ""
     return safe_format(formats["aliases"], aliases=", ".join(aliases))
+
+
+def _gen_text_links(db, formats, show):
+    links = db.get_external_links(show.id)
+    if len(links) == 0:
+        return ""
+
+    link_str = ""
+
+    for link in links:
+        link_str += link.to_markdown()
+
+    return safe_format(formats["links"], external_links=link_str)
 
 
 class _SafeDict(dict):

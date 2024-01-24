@@ -56,13 +56,18 @@ format_aliases =
     ::: spoiler Alternative Names
     *{aliases}*
     :::
+format_links = 
+    ---
+    ::: spoiler Additional Links
+    {external_links}
+    :::
 
 post_body = 
     *{show_name}*, episode {episode}
 
     {aliases}
 
-    ---
+    {links}
     
     {spoiler}
     
@@ -81,6 +86,8 @@ movie_post_body =
     *{show_name}* - Movie Discussion
 
     {aliases}
+
+    {links}
     
     {spoiler}
     
@@ -99,6 +106,8 @@ megathread_body =
     *{show_name}* Megathread {megathread_number}
 
     {aliases}
+
+    {links}
 
     ---
 
