@@ -764,6 +764,6 @@ class DatabaseDatabase:
         if cover_link is None:
             return None
         cover_image = Image(
-            media_id=media_id, image_type="cover", image_link=cover_link
+            media_id=media_id, image_type="cover", image_link=cover_link[0]
         )
         return cover_image
