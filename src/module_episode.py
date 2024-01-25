@@ -179,6 +179,8 @@ def _add_update_upcoming_episodes(db, config):
         for show in found_shows:
             if show["id"] in enabled_show_ids:
                 continue
+            elif show["isAdult"] and not config.nsfw_discovery:
+                continue
             elif (
                 show["countryOfOrigin"] in countries
                 and str_to_showtype(show["format"]) in types

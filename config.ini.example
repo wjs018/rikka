@@ -26,6 +26,8 @@ submit = true
 days = 10
 # Enable or disable discovery of new shows, default false
 show_discovery = false
+# Enable or disable discovery of nsfw shows
+nsfw_discovery = false
 # Minimum number of upvotes needed to keep a dedicated discussion post, default of 1
 # Setting this to <= 1 will disable this requirement since there is always >= 1 upvote
 min_upvotes = 1
