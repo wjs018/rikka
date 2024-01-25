@@ -18,6 +18,7 @@ from .models import (
     UpcomingEpisode,
     Megathread,
     ExternalLink,
+    Image,
 )
 
 
@@ -198,6 +199,16 @@ class DatabaseDatabase:
             language        TEXT,
             url             TEXT,
             UNIQUE(id, site, language) ON CONFLICT REPLACE,
+            FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
+        )"""
+        )
+
+        self.q.execute(
+            """CREATE TABLE IF NOT EXISTS Images (
+            id              INTEGER NOT NULL,
+            image_type      TEXT,
+            image_link      TEXT,
+            UNIQUE(id, image_type) ON CONFLICT REPLACE,
             FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
         )"""
         )
@@ -702,3 +713,57 @@ class DatabaseDatabase:
             external_links.append(external_link)
 
         return external_links
+
+    # Images
+
+    @db_error
+    def add_image(self, image: Image, commit=True):
+        """Add an image for a show to the database"""
+
+        debug("Adding an image for show id {}".format(image.media_id))
+
+        self.q.execute(
+            "INSERT INTO Images (id, image_type, image_link) VALUES (?, ?, ?)",
+            (image.media_id, image.image_type, image.image_link),
+        )
+
+        if commit:
+            self._db.commit()
+
+    @db_error_default(Image)
+    def get_banner_image(self, media_id):
+        """Retrieve the banner image for a show."""
+
+        debug("Fetching the banner image for show id {}".format(media_id))
+
+        self.q.execute(
+            "SELECT image_link FROM Images WHERE id = ? AND image_type = ? LIMIT 1",
+            (media_id, "banner"),
+        )
+
+        banner_link = self.q.fetchone()
+        if banner_link is None:
+            return None
+        banner_image = Image(
+            media_id=media_id, image_type="banner", image_link=banner_link
+        )
+        return banner_image
+
+    @db_error_default(Image)
+    def get_cover_image(self, media_id):
+        """Retrieve the cover image for a show."""
+
+        debug("Fetching the cover image for show id {}".format(media_id))
+
+        self.q.execute(
+            "SELECT image_link FROM Images WHERE id = ? AND image_type = ? LIMIT 1",
+            (media_id, "cover"),
+        )
+
+        cover_link = self.q.fetchone()
+        if cover_link is None:
+            return None
+        cover_image = Image(
+            media_id=media_id, image_type="cover", image_link=cover_link
+        )
+        return cover_image

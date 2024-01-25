@@ -612,6 +612,10 @@ def _format_post_text(config, db, aired_episode, text, **kwargs):
         text = safe_format(text, aliases=_gen_text_aliases(db, formats, show))
     if "{links}" in text:
         text = safe_format(text, links=_gen_text_links(db, formats, show))
+    if "{banner}" in text:
+        text = safe_format(text, banner=_gen_text_banner(db, formats, show))
+    if "{cover}" in text:
+        text = safe_format(text, cover=_gen_text_cover(db, formats, show))
 
     text = safe_format(
         text,
@@ -687,6 +691,22 @@ def _gen_text_links(db, formats, show):
         link_str += link.to_markdown()
 
     return safe_format(formats["links"], external_links=link_str)
+
+
+def _gen_text_banner(db, formats, show):
+    banner_image = db.get_banner_image(show.id)
+    if not banner_image:
+        return ""
+
+    return banner_image.to_markdown()
+
+
+def _gen_text_cover(db, formats, show):
+    cover_image = db.get_cover_image(show.id)
+    if not cover_image:
+        return ""
+
+    return cover_image.to_markdown()
 
 
 class _SafeDict(dict):

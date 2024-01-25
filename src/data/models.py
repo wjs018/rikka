@@ -123,6 +123,7 @@ class UnprocessedShow:
         is_nsfw,
         is_airing,
         external_links,
+        images,
     ):
         self.media_id = media_id
         self.id_mal = id_mal
@@ -134,6 +135,7 @@ class UnprocessedShow:
         self.is_nsfw = is_nsfw
         self.is_airing = is_airing
         self.external_links = external_links
+        self.images = images
 
     def __eq__(self, other):
         return self.media_id == other.media_id
@@ -179,5 +181,25 @@ class ExternalLink:
     def to_markdown(self):
         """Generate the markdown for the external link."""
         text = "- [{}]({})\n".format(str(self), self.url)
+
+        return text
+
+
+class Image:
+    """Class used to define an image associated with a show."""
+
+    def __init__(self, media_id, image_type, image_link):
+        self.media_id = media_id
+        self.image_type = image_type
+        self.image_link = image_link
+
+    def __str__(self):
+        return "{} image for show id {} at url {}".format(
+            self.image_type, self.media_id, self.image_link
+        )
+
+    def to_markdown(self):
+        """Generate the markdown for embedding the image."""
+        text = "![{} image]({})".format(self.image_type, self.image_link)
 
         return text

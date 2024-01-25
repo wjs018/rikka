@@ -4,7 +4,7 @@ import time
 import requests
 
 from logging import debug, info, error
-from data.models import UnprocessedShow, ExternalLink
+from data.models import UnprocessedShow, ExternalLink, Image
 from config import min_ns, api_call_times
 
 URL = "https://graphql.anilist.co"
@@ -32,6 +32,10 @@ query ($page: Int, $id_in: [Int]) {
         site
         language
         url
+      }
+    bannerImage
+    coverImage {
+        extraLarge
       }
     }
   }
@@ -101,6 +105,14 @@ def add_update_shows_by_id(db, show_ids, ratelimit=60, enabled=True):
             debug("Adding link for show id {}: {}".format(raw_show.media_id, link))
             db.add_external_link(link, commit=True)
 
+        for image in raw_show.images:
+            debug(
+                "Adding image for show id {} at url {}".format(
+                    raw_show.media_id, image.image_link
+                )
+            )
+            db.add_image(image, commit=True)
+
     return len(raw_shows)
 
 
@@ -165,6 +177,8 @@ def _get_shows_info(page, show_ids, ratelimit=60):
         is_nsfw = int(show["isAdult"])
         status = show["status"]
         external_links_raw = show["externalLinks"]
+        banner_image = show["bannerImage"]
+        cover_image = show["coverImage"]["extraLarge"]
 
         external_links = []
 
@@ -205,6 +219,18 @@ def _get_shows_info(page, show_ids, ratelimit=60):
             )
             external_links.append(external_link)
 
+        images = []
+
+        if banner_image:
+            banner = Image(
+                media_id=media_id, image_type="banner", image_link=banner_image
+            )
+            images.append(banner)
+
+        if cover_image:
+            cover = Image(media_id=media_id, image_type="cover", image_link=cover_image)
+            images.append(cover)
+
         if status in ["FINISHED", "CANCELLED"]:
             status = False
         else:
@@ -221,6 +247,7 @@ def _get_shows_info(page, show_ids, ratelimit=60):
             is_nsfw=is_nsfw,
             is_airing=status,
             external_links=external_links,
+            images=images,
         )
 
         found_shows.append(raw_show)

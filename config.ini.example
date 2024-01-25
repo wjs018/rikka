@@ -67,6 +67,8 @@ format_links =
 post_body = 
     *{show_name}*, episode {episode}
 
+    {banner}
+
     {aliases}
 
     {links}
@@ -87,6 +89,8 @@ post_body =
 movie_post_body = 
     *{show_name}* - Movie Discussion
 
+    {banner}
+
     {aliases}
 
     {links}
@@ -106,6 +110,8 @@ megathread_title_with_en = {show_name} • {show_name_en} - Megathread {megathre
 
 megathread_body =
     *{show_name}* Megathread {megathread_number}
+
+    {banner}
 
     {aliases}
 
