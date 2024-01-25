@@ -261,7 +261,12 @@ def _get_airing_schedule(page, start, end, ratelimit=60):
         return "bad response"
 
     response = response.json()
-    has_next_page = response["data"]["Page"]["pageInfo"]["hasNextPage"]
+
+    try:
+        has_next_page = response["data"]["Page"]["pageInfo"]["hasNextPage"]
+    except KeyError:
+        error("Bad response from AniList api from request for airing times")
+        return "bad response"
 
     found_episodes_resp = response["data"]["Page"]["airingSchedules"]
 
