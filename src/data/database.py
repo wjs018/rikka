@@ -745,7 +745,7 @@ class DatabaseDatabase:
         if banner_link is None:
             return None
         banner_image = Image(
-            media_id=media_id, image_type="banner", image_link=banner_link
+            media_id=media_id, image_type="banner", image_link=banner_link[0]
         )
         return banner_image
 
