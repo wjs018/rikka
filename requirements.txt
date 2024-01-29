@@ -1,0 +1,8 @@
+#
+# rikka Requirements
+#
+unidecode
+requests
+pyyaml
+python-dateutil
+pythorhead>=0.20.0
