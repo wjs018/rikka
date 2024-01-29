@@ -22,6 +22,9 @@ countries = JP
 ratelimit = 60
 # Whether to actually submit posts or not, default true
 submit = true
+# Option to have either the cover or banner image (if available) be the submitted link
+# Options are banner, cover, none (default)
+submit_image = none
 # Number of days to look ahead for upcoming episodes, default of 7 if unspecified
 days = 10
 # Enable or disable discovery of new shows, default false

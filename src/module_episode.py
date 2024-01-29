@@ -92,13 +92,41 @@ def main(config, db, *args, **kwargs):
                     if lemmy.is_comment_url(editing_episode.link):
                         continue
 
+                    if config.submit_image == "banner":
+                        banner_image = db.get_banner_image(editing_episode.media_id)
+                        image_url = banner_image.image_link
+                    elif config.submit_image == "cover":
+                        cover_image = db.get_cover_image(editing_episode.media_id)
+                        image_url = cover_image.image_link
+                    else:
+                        image_url = None
+
                     _edit_post(
-                        config, db, editing_episode, editing_episode.link, config.submit
+                        config,
+                        db,
+                        editing_episode,
+                        editing_episode.link,
+                        config.submit,
+                        image_url=image_url,
                     )
 
             if show_megathread:
+                if config.submit_image == "banner":
+                    banner_image = db.get_banner_image(show_megathread.media_id)
+                    image_url = banner_image.image_link
+                elif config.submit_image == "cover":
+                    cover_image = db.get_cover_image(show_megathread.media_id)
+                    image_url = cover_image.image_link
+                else:
+                    image_url = None
+
                 _edit_megathread(
-                    config, db, episode, show_megathread.post_url, config.submit
+                    config,
+                    db,
+                    episode,
+                    show_megathread.post_url,
+                    config.submit,
+                    image_url=image_url,
                 )
         else:
             error("Problem handling aired episode {}".format(episode))
@@ -380,7 +408,16 @@ def _create_standalone_post(db, config, episode):
 
     title, body = _create_post_contents(config, db, episode)
 
-    post_url = _create_post(config, title, body, nsfw, submit=config.submit)
+    if config.submit_image == "banner":
+        banner_image = db.get_banner_image(episode.media_id)
+        url = banner_image.image_link
+    elif config.submit_image == "cover":
+        cover_image = db.get_cover_image(episode.media_id)
+        url = cover_image.image_link
+    else:
+        url = None
+
+    post_url = _create_post(config, title, body, nsfw, submit=config.submit, url=url)
 
     if post_url:
         post_url.replace("http:", "https:")
@@ -461,14 +498,25 @@ def _create_megathread(db, config, episode, number=1):
 
     body = _format_post_text(config, db, episode, config.megathread_body)
 
+    if config.submit_image == "banner":
+        banner_image = db.get_banner_image(episode.media_id)
+        url = banner_image.image_link
+    elif config.submit_image == "cover":
+        cover_image = db.get_cover_image(episode.media_id)
+        url = cover_image.image_link
+    else:
+        url = None
+
     if config.submit:
-        new_post = lemmy.submit_text_post(config.l_community, title, body, nsfw)
+        new_post = lemmy.submit_text_post(
+            config.l_community, title, body, nsfw, url=url
+        )
         if new_post:
-            url = lemmy.get_shortlink_from_id(new_post["id"])
-            info("Megathread made at {}".format(url))
+            megathread_url = lemmy.get_shortlink_from_id(new_post["id"])
+            info("Megathread made at {}".format(megathread_url))
 
             debug("Writing megathread to database")
-            megathread = Megathread(episode.media_id, number, url, 0)
+            megathread = Megathread(episode.media_id, number, megathread_url, 0)
             db.add_megathread(megathread)
 
             return megathread
@@ -491,13 +539,13 @@ def _create_megathread_title(config, db, episode, include_english=True):
     return title
 
 
-def _edit_megathread(config, db, episode, url, submit=True):
+def _edit_megathread(config, db, episode, url, submit=True, image_url=None):
     """Edit the contents of a megathread."""
 
     body = _format_post_text(config, db, episode, config.megathread_body)
 
     if submit:
-        lemmy.edit_text_post(url, body)
+        lemmy.edit_text_post(url, body, image_url=image_url)
     return None
 
 
@@ -512,11 +560,13 @@ def _get_aired_episodes(db, current_time):
     return aired
 
 
-def _create_post(config, title, body, nsfw, submit=True):
+def _create_post(config, title, body, nsfw, submit=True, url=None):
     """Creates the discussion post on Lemmy."""
 
     if submit:
-        new_post = lemmy.submit_text_post(config.l_community, title, body, nsfw)
+        new_post = lemmy.submit_text_post(
+            config.l_community, title, body, nsfw, url=url
+        )
         if new_post is not None:
             debug("Post successful")
             return lemmy.get_shortlink_from_id(new_post["id"])
@@ -526,13 +576,13 @@ def _create_post(config, title, body, nsfw, submit=True):
     return None
 
 
-def _edit_post(config, db, aired_episode, url, submit=True):
+def _edit_post(config, db, aired_episode, url, submit=True, image_url=None):
     """Edits the table of links in a discussion post."""
 
     _, body = _create_post_contents(config, db, aired_episode, submit=submit)
 
     if submit:
-        lemmy.edit_text_post(url, body)
+        lemmy.edit_text_post(url, body, image_url=image_url)
     return None
 
 

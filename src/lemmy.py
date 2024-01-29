@@ -65,22 +65,22 @@ def _get_host_instance():
 # Thing doing
 
 
-def submit_text_post(community, title, body, nsfw):
+def submit_text_post(community, title, body, nsfw, url=None):
     _ensure_connection()
     info(f"Submitting post to {community}")
     community_id = _l.discover_community(community)
     if not community_id:
         exception(f"Community {community} not found")
-    response = _l.post.create(community_id, title, body=body, nsfw=nsfw)
+    response = _l.post.create(community_id, title, body=body, nsfw=nsfw, url=url)
     return _extract_post_response(response)
 
 
-def edit_text_post(url, body):
+def edit_text_post(url, body, image_url=None):
     _ensure_connection()
     post_id = _get_post_id_from_shortlink(url)
     try:
         info(f"Editing post {url}")
-        response = _l.post.edit(post_id, body=body)
+        response = _l.post.edit(post_id, body=body, url=image_url)
         return _extract_post_response(response)
     except:
         exception("Failed to submit text post")
