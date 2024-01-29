@@ -19,8 +19,8 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
   - [edit](https://github.com/wjs018/rikka#the-edit-module)
   - [edit_holo](https://github.com/wjs018/rikka#the-edit_holo-module)
   - [episode](https://github.com/wjs018/rikka#the-episode-module)
-- [Usage](https://github.com/wjs018/rikka#usage)
-- [Module Run Frequency](https://github.com/wjs018/rikka#module-run-frequency)
+- [First Time Setup and Usage](https://github.com/wjs018/rikka#first-time-setup-and-usage)
+- [Automating Rikka](https://github.com/wjs018/rikka#automating-rikka)
 
 ## Requirements
 
@@ -197,9 +197,24 @@ python src/rikka.py
 
 Also, if enabled in the config file, the episode module can discover new shows that match the specified criteria and populate the database with the show's information.
 
-## Usage
+## First Time Setup and Usage
 
-1. Update config file with your desired configuration including lemmy details. Make sure the community you're posting to is a personal test community while you are confirming everything works for you.
+I have tried to walk through the steps of how to set up and run rikka for the first time.
+
+1. Clone the repo into a folder on the target machine and navigate into the root folder.
+
+```bash
+git clone https://github.com/wjs018/rikka.git
+cd rikka
+```
+
+2. Copy and rename the example config file.
+
+```bash
+cp config.ini.example config.ini
+```
+
+3. Edit the config file as desired. By default, it is set up to simulate the posting behavior of holo in which each episode gets a separate discussion post and extra features like automated show discovery, or engagement driven megathreads are turned off. The `[lemmy]` section needs to be filled out with the details of the community and instance to post to as well as the posting user's username and password.
 
 ```ini
 [lemmy]
@@ -209,20 +224,95 @@ username = your_username
 password = your_password
 ```
 
-2. Make sure that the `[options]` portion of the config file is set up with the desired configuration. Comments are included in the example config file to aid in understanding what different options do.
-3. Set up the database by running `python src/rikka.py -m setup`
-4. Enable the shows that should get discussion posts one of three ways:
-   1. Enable show discovery options in the config file and then run the episode module with `python src/rikka.py`
-   2. Load list of AniList ids by yaml file `python src/rikka.py -m edit season_configs/yaml_file_of_ids.yaml`
-   3. Load a yaml config file formatted for [holo](https://github.com/r-anime/holo) `python src/rikka.py -m edit_holo season_configs/holo_formatted_file.yaml`
-5. The bot is now ready to post threads with `python src/rikka.py`
+Comments have been added into the example config file to try to make clear what the different options do.
 
-### Module Run Frequency
+4. Once the config file is finished, make sure the python dependencies are installed. It is recommended to utilize a venv (or similar) dedicated to rikka for this purpose. Setting up and activating a venv is left as an activity for the reader. Once you have activated your venv you can install the dependencies:
 
-| Module                                    | Run freq | Command                                     |
-| :---------------------------------------- | :------: | :------------------------------------------ |
-| Episode:<br>Find new episodes             |   high   | `python src/rikka.py`                       |
-| Update:<br>Update show information        |   low    | `python src/rikka.py -m update`             |
-| Edit:<br>Load or modify shows in database |  manual  | `python src/rikka.py -m edit [show-config]` |
-| Setup:<br>Set up database                 |   once   | `python src/rikka.py -m setup`              |
-| Others                                    |  manual  | See module descriptions                     |
+```bash
+pip install -r requirements.txt
+```
+
+5. Next, the database needs to be set up. This is done by rikka using the `setup` module.
+
+```bash
+python src/rikka.py -m setup
+```
+
+6. After building the database, it needs to be populated with shows to monitor. This can be done in multiple ways. The simplest way is to configure the show discovery options in the config file before running the `episode` module in the next step. The relevant options are found in the `[options]` section of the config file.
+
+- To enable show discovery, first specify `show_discovery = true`.
+- Then, the types of shows can be specified through adding them to `new_show_types`. The default value of `tv ona` tends to account for most media released each season, but the full list of options are included in the comments of the config file for reference.
+- To prevent discovery of explicit, adult media, you can make sure that `nsfw_discovery = false`
+- Finally, to include media from multiple countries of origin, you can specify the `countries` value. The default of `JP` will only discover media made in Japan. To add another country, just expand this list. For example a value of `JP CN` would discover media made in both Japan and China.
+
+Another method to add shows to the database is to make use of the various edit/add modules. First, the `edit` module provides a couple different ways to add shows to the database. You can see usage examples of the edit module in the [edit module section](https://github.com/wjs018/rikka#the-edit-module) above.
+
+The `edit_holo` module is specifically made to be able to load shows into the database through the use of yaml files that have been produced and formatted for the [holo](https://github.com/r-anime/holo) project. To find a yaml file for a specific season, you can browse the holo repository in the `season_configs` folder. Download the yaml files for the season(s) that you want to load into rikka's database and then use the `edit_holo` module to load each of them (see [module section above](https://github.com/wjs018/rikka#the-edit_holo-module) for instructions).
+
+The final option to populate the database with shows is through the use of the `add` module. This adds a single show at a time. Refer to the [module section above](https://github.com/wjs018/rikka#the-add-module) for usage instructions.
+
+7. Once either show discovery is enabled and configured and/or shows have been loaded into the database through the use of the edit/add modules, it is time to run the `episode` module. The first time this module is run, no posts will be made to lemmy. rikka only has the capability to look forward in time for upcoming episodes that will air. So, the first time the `episode` module is run, it will populate the database with all the upcoming episodes that are going to air over the time period specified in the config file (default of 7 days). Because there were no existing episodes in the database with a timestamp in the past, no discussion threads will be generated. To run the `episode` module, simply run rikka with no arguments:
+
+```bash
+python src/rikka.py
+```
+
+The `episode` module is the module that finds newly aired episodes, makes discussion posts, and (if enabled) discovers new shows. So, to automate rikka, the episode module should be run with a fairly high frequency. For my personal usage, I use cron to run the episode module every 15 minutes.
+
+8. Occasionally, you might want to update the metadata of shows that are in the database. This is done with the `update` module. It does not need to be run as frequently as the `episode` module. Once per week is more than enough. Also, it is not necessary to update after adding a new show/shows. When a new show is added to the database using either edit module, the add module, or through show discovery, the metadata is updated automatically. For details on the `update` module, see the [module section above](https://github.com/wjs018/rikka#the-update-module).
+
+```bash
+python src/rikka.py -m update
+```
+
+## Automating rikka
+
+I have a couple best practices I have developed over the course of my time working on and running rikka that I thought I would share. Firstly, this is the frequency with which I run the different modules on my version of rikka:
+
+| Module                                      |     Run freq     | Command                                       |
+| :------------------------------------------ | :--------------: | :-------------------------------------------- |
+| `episode`:<br>Find new episodes             | every 15 minutes | `python src/rikka.py`                         |
+| `update`:<br>Update show information        |    every week    | `python src/rikka.py -m update all`           |
+| `edit`:<br>Load or modify shows in database | once per season  | `python src/rikka.py -m edit [season-config]` |
+| Others                                      |      manual      | module dependent                              |
+
+I schedule these through the use of a shell script and cron on my server. A simple example version of the shell script I use for the `episode` module follows (change folders/paths to fit your environment).
+
+```sh
+# Activate venv
+source /home/rikka-user/environments/rikka/bin/activate
+
+# Navigate to folder
+cd /home/rikka-user/rikka/
+
+# Run episode module
+python src/rikka.py
+```
+
+I then schedule this to run every 15 minutes with logging written out to a file using cron. Below, I have written out my crontab entry:.
+
+```
+*/15 * * * * /home/rikka-user/run_rikka.sh >> /home/rikka-user/rikka-log.log 2>&1
+```
+
+This would log all the output of rikka to the `rikka-log.log` file. So, to prevent an ever-ballooning log file, I set up logrotate to keep things in check. This is done by adding a block at the end of `/etc/logrotate.conf` on most servers. I use the following config block on my server:
+
+```
+/home/rikka-user/rikka-log.log {
+        missingok
+        notifempty
+        maxsize 10M
+        daily
+        create 0644 rikka-user rikka-user
+        rotate 4
+}
+```
+
+This retains logs from the previous 4 days to aid in troubleshooting if any issues come up.
+
+Finally, the last thing I do when automating rikka is to set up a healthcheck through a service like healthchecks.io. I won't go into the details of how to interface with their service and leave it as an exercise to the reader, but it is a way to check in with a server each time your script executes. If it fails to check in after a specified amount of time, then you can configure alerts that are sent to you. In my case, through using healthchecks.io, all I need to do is add a line at the end of my shell script from above:
+
+```sh
+# Send an HTTP GET request with curl to signal script execution:
+curl -m 10 --retry 5 https://hc-ping.com/your-specific-endpoint-here
+```

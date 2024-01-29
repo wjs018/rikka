@@ -26,7 +26,7 @@ submit = true
 # Options are banner, cover, none (default)
 submit_image = none
 # Number of days to look ahead for upcoming episodes, default of 7 if unspecified
-days = 10
+days = 7
 # Enable or disable discovery of new shows, default false
 show_discovery = false
 # Enable or disable discovery of nsfw shows
