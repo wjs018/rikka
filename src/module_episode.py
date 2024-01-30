@@ -94,10 +94,16 @@ def main(config, db, *args, **kwargs):
 
                     if config.submit_image == "banner":
                         banner_image = db.get_banner_image(editing_episode.media_id)
-                        image_url = banner_image.image_link
+                        if banner_image:
+                            image_url = banner_image.image_link
+                        else:
+                            image_url = None
                     elif config.submit_image == "cover":
                         cover_image = db.get_cover_image(editing_episode.media_id)
-                        image_url = cover_image.image_link
+                        if cover_image:
+                            image_url = cover_image.image_link
+                        else:
+                            image_url = None
                     else:
                         image_url = None
 
@@ -113,10 +119,16 @@ def main(config, db, *args, **kwargs):
             if show_megathread:
                 if config.submit_image == "banner":
                     banner_image = db.get_banner_image(show_megathread.media_id)
-                    image_url = banner_image.image_link
+                    if banner_image:
+                        image_url = banner_image.image_link
+                    else:
+                        image_url = None
                 elif config.submit_image == "cover":
                     cover_image = db.get_cover_image(show_megathread.media_id)
-                    image_url = cover_image.image_link
+                    if cover_image:
+                        image_url = cover_image.image_link
+                    else:
+                        image_url = None
                 else:
                     image_url = None
 
@@ -410,10 +422,16 @@ def _create_standalone_post(db, config, episode):
 
     if config.submit_image == "banner":
         banner_image = db.get_banner_image(episode.media_id)
-        url = banner_image.image_link
+        if banner_image:
+            url = banner_image.image_link
+        else:
+            url = None
     elif config.submit_image == "cover":
         cover_image = db.get_cover_image(episode.media_id)
-        url = cover_image.image_link
+        if cover_image:
+            url = cover_image.image_link
+        else:
+            url = None
     else:
         url = None
 
@@ -500,10 +518,16 @@ def _create_megathread(db, config, episode, number=1):
 
     if config.submit_image == "banner":
         banner_image = db.get_banner_image(episode.media_id)
-        url = banner_image.image_link
+        if banner_image:
+            url = banner_image.image_link
+        else:
+            url = None
     elif config.submit_image == "cover":
         cover_image = db.get_cover_image(episode.media_id)
-        url = cover_image.image_link
+        if cover_image:
+            url = cover_image.image_link
+        else:
+            url = None
     else:
         url = None
 
