@@ -16,7 +16,7 @@ from data import database
 # Metadata
 name = "Rikka"
 description = "episode discussion bot"
-version = "0.4.2"
+version = "0.4.3"
 
 
 def main(config, args, extra_args):
@@ -76,6 +76,12 @@ def main(config, args, extra_args):
 
             m.main(config, db, *extra_args)
 
+        elif config.module == "edit_season":
+            debug("Adding shows for an entire season")
+            import module_edit_season as m  # pylint: disable=import-outside-toplevel
+
+            m.main(config, db, *extra_args)
+
         elif config.module == "episode":
             debug("Searching for new episodes and making discussion posts")
             import module_episode as m  # pylint: disable=import-outside-toplevel
@@ -104,15 +110,16 @@ if __name__ == "__main__":
         dest="module",
         nargs=1,
         choices=[
-            "setup",  # done
-            "edit",  # done
-            "edit_holo",  # done
-            "update",  # done
-            "add",  # done
-            "disable",  # done
-            "enable",  # done
-            "remove",  # done
-            "episode",  # in progress
+            "setup",
+            "edit",
+            "edit_holo",
+            "edit_season",
+            "update",
+            "add",
+            "disable",
+            "enable",
+            "remove",
+            "episode",
         ],
         default=["episode"],
         help="runs the specified module",
@@ -130,7 +137,7 @@ if __name__ == "__main__":
         "--database",
         dest="db_name",
         nargs=1,
-        default=["database.sqlite"],
+        default=[None],
         help="use or create the specified database location",
     )
     parser.add_argument(
@@ -177,7 +184,7 @@ if __name__ == "__main__":
     c.debug |= args.debug
     c.module = args.module[0]
     c.log_dir = args.log_dir[0]
-    if args.db_name is not None:
+    if args.db_name[0] is not None:
         c.database = args.db_name[0]
     if args.community is not None:
         c.community = args.community[0]

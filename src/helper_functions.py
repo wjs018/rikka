@@ -4,37 +4,37 @@ import time
 import requests
 
 from logging import debug, info, error
-from data.models import UnprocessedShow, ExternalLink, Image
+from data.models import UnprocessedShow, ExternalLink, Image, str_to_showtype
 from config import min_ns, api_call_times
 
 URL = "https://graphql.anilist.co"
 
 paged_show_query = """
 query ($page: Int, $id_in: [Int]) {
-  Page (page: $page, perPage: 25) {
+  Page (page: $page, perPage: 50) {
     pageInfo {
       hasNextPage
     }
     media (id_in: $id_in) {
-    id
-    idMal
-    title {
-      romaji
-      english
-    }
-    format
-    source
-    synonyms
-    isAdult
-    status
-    externalLinks {
+      id
+      idMal
+      title {
+        romaji
+        english
+      }
+      format
+      source
+      synonyms
+      isAdult
+      status
+      externalLinks {
         type
         site
         language
         url
       }
-    bannerImage
-    coverImage {
+      bannerImage
+      coverImage {
         extraLarge
       }
     }
@@ -272,3 +272,36 @@ def add_alias(db, show_id, alias, commit=True):
     """Add an alias for the given show."""
 
     db.add_alias(show_id=show_id, alias=alias, commit=commit)
+
+
+def meet_discovery_criteria(db, config, media_dict):
+    """
+    Check if a media item returned by api call meets the discovery criteria. Will also
+    return False if show already exists in database.
+    """
+
+    if not config.show_discovery:
+        return False
+
+    existing_show_ids = []
+    db_shows = db.get_shows(enabled="all")
+    for show in db_shows:
+        existing_show_ids.append(show.id)
+
+    countries = config.countries
+    types = config.new_show_types
+    media_type = str_to_showtype(media_dict["format"])
+
+    if media_dict["id"] in existing_show_ids:
+        return False
+
+    if media_dict["isAdult"] and not config.nsfw_discovery:
+        return False
+
+    if media_dict["countryOfOrigin"] not in countries:
+        return False
+
+    if media_type not in types:
+        return False
+
+    return True

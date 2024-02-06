@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 
 import lemmy
 from config import min_ns, api_call_times
-from helper_functions import URL, add_update_shows_by_id
+from helper_functions import URL, add_update_shows_by_id, meet_discovery_criteria
 from data.models import (
     UpcomingEpisode,
     str_to_showtype,
@@ -210,22 +210,12 @@ def _add_update_upcoming_episodes(db, config):
         disabled_show_ids.append(show.id)
 
     # Initialize things to filter out unwanted shows
-    countries = config.countries
-    types = config.new_show_types
     discovery = config.show_discovery
 
     # Filter out shows not matching show type or country of origin, add matching shows
     if discovery:
         for show in found_shows:
-            if show["id"] in enabled_show_ids:
-                continue
-            elif show["isAdult"] and not config.nsfw_discovery:
-                continue
-            elif (
-                show["countryOfOrigin"] in countries
-                and str_to_showtype(show["format"]) in types
-                and show["id"] not in disabled_show_ids
-            ):
+            if meet_discovery_criteria(db, config, show):
                 debug("Found new show {}. Adding to database.".format(show["id"]))
                 new_show_list.append(show["id"])
 

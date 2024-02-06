@@ -320,6 +320,9 @@ class DatabaseDatabase:
         name_en = raw_show.name_en
 
         # None is written to db as NULL and can sometimes end up in posts, just use ""
+        if not id_mal:
+            id_mal = ""
+
         if not name_en:
             name_en = ""
 
@@ -371,6 +374,9 @@ class DatabaseDatabase:
         name_en = raw_show.name_en
 
         # None is written to db as NULL and can sometimes end up in posts, just use ""
+        if not id_mal:
+            id_mal = ""
+
         if not name_en:
             name_en = ""
 
