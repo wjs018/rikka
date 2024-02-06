@@ -18,6 +18,7 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
   - [update](https://github.com/wjs018/rikka#the-update-module)
   - [edit](https://github.com/wjs018/rikka#the-edit-module)
   - [edit_holo](https://github.com/wjs018/rikka#the-edit_holo-module)
+  - [edit_season](https://github.com/wjs018/rikka#the-edit_season-module)
   - [episode](https://github.com/wjs018/rikka#the-episode-module)
 - [First Time Setup and Usage](https://github.com/wjs018/rikka#first-time-setup-and-usage)
 - [Automating Rikka](https://github.com/wjs018/rikka#automating-rikka)
@@ -181,6 +182,25 @@ python src/rikka.py -m edit_holo season_configs/example_holo.yaml
 
 ---
 
+### The `edit_season` Module
+
+The edit_season module is a way to automatically add all the media from a given season to rikka's database. This works by retrieving all the media for a given season and year from the AniList api and then applying the show discovery criteria to them as configured in the config file. This means there are a couple caveats to this module:
+
+- The season and year for a given show are limited to what is in AniList's api. So, shows that run multiple cours are typically going to be listed under the first cour in which they begin airing. As an example, Frieren: Beyond Journey's End is listed in AniList's api as a Fall 2023 show, but not a Winter 2024 show despite airing in both seasons.
+- Related to the caveat above, long-running shows might be listed under a very different season than might be intuitively expected. As an example, One Piece, despite still airing as of writing this in 2024, is listed in the Fall 1999 season.
+- Show discovery must be enabled for this module to load any results into the database. This entails setting `show_discovery = true` in the `[options]` section of the config file. For more info on the show discovery criteria, see the comments in the example config file.
+
+To use the edit_season module, you must provide two arguments:
+
+1. The season - one of `winter`, `spring`, `summer`, or `fall`
+2. The year
+
+So, to load all the shows matching the discovery criteria from the Fall 2023 season, simply run:
+
+```bash
+python src/rikka.py -m edit_season fall 2023
+```
+
 ### The `episode` Module
 
 The episode module is the primary module that is used to make discussion posts and the default module that is run if no module is specified. First, it will query AniList for upcoming episodes of all enabled shows in the database. Then, it will make discussion posts for episodes that were previously found as upcoming, but the current time is later than the scheduled airing time.
@@ -245,6 +265,8 @@ python src/rikka.py -m setup
 - To prevent discovery of explicit, adult media, you can make sure that `nsfw_discovery = false`
 - Finally, to include media from multiple countries of origin, you can specify the `countries` value. The default of `JP` will only discover media made in Japan. To add another country, just expand this list. For example a value of `JP CN` would discover media made in both Japan and China.
 
+Another simple method to populate the database is to use the `edit_season` module. This uses the configured show discovery options and then automatically populates the database with all the matching shows from a given season and year. You can see more about how to use it in the [edit_season module section](https://github.com/wjs018/rikka#the-edit_season-module) above.
+
 Another method to add shows to the database is to make use of the various edit/add modules. First, the `edit` module provides a couple different ways to add shows to the database. You can see usage examples of the edit module in the [edit module section](https://github.com/wjs018/rikka#the-edit-module) above.
 
 The `edit_holo` module is specifically made to be able to load shows into the database through the use of yaml files that have been produced and formatted for the [holo](https://github.com/r-anime/holo) project. To find a yaml file for a specific season, you can browse the holo repository in the `season_configs` folder. Download the yaml files for the season(s) that you want to load into rikka's database and then use the `edit_holo` module to load each of them (see [module section above](https://github.com/wjs018/rikka#the-edit_holo-module) for instructions).
@@ -269,12 +291,12 @@ python src/rikka.py -m update
 
 I have a couple best practices I have developed over the course of my time working on and running rikka that I thought I would share. Firstly, this is the frequency with which I run the different modules on my version of rikka:
 
-| Module                                      |     Run freq     | Command                                       |
-| :------------------------------------------ | :--------------: | :-------------------------------------------- |
-| `episode`:<br>Find new episodes             | every 15 minutes | `python src/rikka.py`                         |
-| `update`:<br>Update show information        |    every week    | `python src/rikka.py -m update all`           |
-| `edit`:<br>Load or modify shows in database | once per season  | `python src/rikka.py -m edit [season-config]` |
-| Others                                      |      manual      | module dependent                              |
+| Module                                             |     Run freq     | Command                                          |
+| :------------------------------------------------- | :--------------: | :----------------------------------------------- |
+| `episode`:<br>Find new episodes                    | every 15 minutes | `python src/rikka.py`                            |
+| `update`:<br>Update show information               |    every week    | `python src/rikka.py -m update all`              |
+| `edit_season`:<br>Load or modify shows in database | once per season  | `python src/rikka.py -m edit_season season year` |
+| Others                                             |      manual      | module dependent                                 |
 
 I schedule these through the use of a shell script and cron on my server. A simple example version of the shell script I use for the `episode` module follows (change folders/paths to fit your environment).
 
@@ -289,7 +311,7 @@ cd /home/rikka-user/rikka/
 python src/rikka.py
 ```
 
-I then schedule this to run every 15 minutes with logging written out to a file using cron. Below, I have written out my crontab entry:.
+I then schedule this to run every 15 minutes with logging written out to a file using cron. Below, I have written out my crontab entry:
 
 ```
 */15 * * * * /home/rikka-user/run_rikka.sh >> /home/rikka-user/rikka-log.log 2>&1
