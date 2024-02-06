@@ -6,22 +6,22 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
 
 ## Table of Contents
 
-- [Requirements](https://github.com/wjs018/rikka#requirements)
-- [Design Notes](https://github.com/wjs018/rikka#design-notes)
-- [Megathread Configuration](https://github.com/wjs018/rikka#megathread-configuration)
-- [Modules](https://github.com/wjs018/rikka#modules)
-  - [setup](https://github.com/wjs018/rikka#the-setup-module)
-  - [add](https://github.com/wjs018/rikka#the-add-module)
-  - [disable](https://github.com/wjs018/rikka#the-disable-module)
-  - [enable](https://github.com/wjs018/rikka#the-enable-module)
-  - [remove](https://github.com/wjs018/rikka#the-remove-module)
-  - [update](https://github.com/wjs018/rikka#the-update-module)
-  - [edit](https://github.com/wjs018/rikka#the-edit-module)
-  - [edit_holo](https://github.com/wjs018/rikka#the-edit_holo-module)
-  - [edit_season](https://github.com/wjs018/rikka#the-edit_season-module)
-  - [episode](https://github.com/wjs018/rikka#the-episode-module)
-- [First Time Setup and Usage](https://github.com/wjs018/rikka#first-time-setup-and-usage)
-- [Automating Rikka](https://github.com/wjs018/rikka#automating-rikka)
+- [Requirements](https://github.com/wjs018/rikka?tab=readme-ov-file#requirements)
+- [Design Notes](https://github.com/wjs018/rikka?tab=readme-ov-file#design-notes)
+- [Megathread Configuration](https://github.com/wjs018/rikka?tab=readme-ov-file#megathread-configuration)
+- [Modules](https://github.com/wjs018/rikka?tab=readme-ov-file#modules)
+  - [setup](https://github.com/wjs018/rikka?tab=readme-ov-file#the-setup-module)
+  - [add](https://github.com/wjs018/rikka?tab=readme-ov-file#the-add-module)
+  - [disable](https://github.com/wjs018/rikka?tab=readme-ov-file#the-disable-module)
+  - [enable](https://github.com/wjs018/rikka?tab=readme-ov-file#the-enable-module)
+  - [remove](https://github.com/wjs018/rikka?tab=readme-ov-file#the-remove-module)
+  - [update](https://github.com/wjs018/rikka?tab=readme-ov-file#the-update-module)
+  - [edit](https://github.com/wjs018/rikka?tab=readme-ov-file#the-edit-module)
+  - [edit_holo](https://github.com/wjs018/rikka?tab=readme-ov-file#the-edit_holo-module)
+  - [edit_season](https://github.com/wjs018/rikka?tab=readme-ov-file#the-edit_season-module)
+  - [episode](https://github.com/wjs018/rikka?tab=readme-ov-file#the-episode-module)
+- [First Time Setup and Usage](https://github.com/wjs018/rikka?tab=readme-ov-file#first-time-setup-and-usage)
+- [Automating Rikka](https://github.com/wjs018/rikka?tab=readme-ov-file#automating-rikka)
 
 ## Requirements
 
@@ -271,13 +271,13 @@ python src/rikka.py -m setup
 - To prevent discovery of explicit, adult media, you can make sure that `nsfw_discovery = false`
 - Finally, to include media from multiple countries of origin, you can specify the `countries` value. The default of `JP` will only discover media made in Japan. To add another country, just expand this list. For example a value of `JP CN` would discover media made in both Japan and China.
 
-Another simple method to populate the database is to use the `edit_season` module. This uses the configured show discovery options and then automatically populates the database with all the matching shows from a given season and year. You can see more about how to use it in the [edit_season module section](https://github.com/wjs018/rikka#the-edit_season-module) above.
+Another simple method to populate the database is to use the `edit_season` module. This uses the configured show discovery options and then automatically populates the database with all the matching shows from a given season and year. You can see more about how to use it in the [edit_season module section](https://github.com/wjs018/rikka?tab=readme-ov-file#the-edit_season-module) above.
 
-Another method to add shows to the database is to make use of the various edit/add modules. First, the `edit` module provides a couple different ways to add shows to the database. You can see usage examples of the edit module in the [edit module section](https://github.com/wjs018/rikka#the-edit-module) above.
+Another method to add shows to the database is to make use of the various edit/add modules. First, the `edit` module provides a couple different ways to add shows to the database. You can see usage examples of the edit module in the [edit module section](https://github.com/wjs018/rikka?tab=readme-ov-file#the-edit-module) above.
 
-The `edit_holo` module is specifically made to be able to load shows into the database through the use of yaml files that have been produced and formatted for the [holo](https://github.com/r-anime/holo) project. To find a yaml file for a specific season, you can browse the holo repository in the `season_configs` folder. Download the yaml files for the season(s) that you want to load into rikka's database and then use the `edit_holo` module to load each of them (see [module section above](https://github.com/wjs018/rikka#the-edit_holo-module) for instructions).
+The `edit_holo` module is specifically made to be able to load shows into the database through the use of yaml files that have been produced and formatted for the [holo](https://github.com/r-anime/holo) project. To find a yaml file for a specific season, you can browse the holo repository in the `season_configs` folder. Download the yaml files for the season(s) that you want to load into rikka's database and then use the `edit_holo` module to load each of them (see [module section above](https://github.com/wjs018/rikka?tab=readme-ov-file#the-edit_holo-module) for instructions).
 
-The final option to populate the database with shows is through the use of the `add` module. This adds a single show at a time. Refer to the [module section above](https://github.com/wjs018/rikka#the-add-module) for usage instructions.
+The final option to populate the database with shows is through the use of the `add` module. This adds a single show at a time. Refer to the [module section above](https://github.com/wjs018/rikka?tab=readme-ov-file#the-add-module) for usage instructions.
 
 7. Once either show discovery is enabled and configured and/or shows have been loaded into the database through the use of the edit/add modules, it is time to run the `episode` module. The first time this module is run, no posts will be made to lemmy. rikka only has the capability to look forward in time for upcoming episodes that will air. So, the first time the `episode` module is run, it will populate the database with all the upcoming episodes that are going to air over the time period specified in the config file (default of 7 days). Because there were no existing episodes in the database with a timestamp in the past, no discussion threads will be generated. To run the `episode` module, simply run rikka with no arguments:
 
@@ -287,7 +287,7 @@ python src/rikka.py
 
 The `episode` module is the module that finds newly aired episodes, makes discussion posts, and (if enabled) discovers new shows. So, to automate rikka, the episode module should be run with a fairly high frequency. For my personal usage, I use cron to run the episode module every 15 minutes.
 
-8. Occasionally, you might want to update the metadata of shows that are in the database. This is done with the `update` module. It does not need to be run as frequently as the `episode` module. Once per week is more than enough. Also, it is not necessary to update after adding a new show/shows. When a new show is added to the database using either edit module, the add module, or through show discovery, the metadata is updated automatically. For details on the `update` module, see the [module section above](https://github.com/wjs018/rikka#the-update-module).
+8. Occasionally, you might want to update the metadata of shows that are in the database. This is done with the `update` module. It does not need to be run as frequently as the `episode` module. Once per week is more than enough. Also, it is not necessary to update after adding a new show/shows. When a new show is added to the database using either edit module, the add module, or through show discovery, the metadata is updated automatically. For details on the `update` module, see the [module section above](https://github.com/wjs018/rikka?tab=readme-ov-file#the-update-module).
 
 ```bash
 python src/rikka.py -m update
