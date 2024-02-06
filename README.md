@@ -96,6 +96,12 @@ You can disable shows via cli one at a time by providing the AniList id. This wi
 python src/rikka.py -m disable 162893
 ```
 
+You can also disable all shows marked as nsfw according to AniList's api with one command using `nsfw`.
+
+```bash
+python src/rikka.py -m disable nsfw
+```
+
 ---
 
 ### The `enable` Module
