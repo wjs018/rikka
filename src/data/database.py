@@ -606,6 +606,14 @@ class DatabaseDatabase:
 
         self._db.commit()
 
+    @db_error
+    def remove_upcoming_episodes(self, media_id):
+        """Remove all upcoming episodes for a given show from the database."""
+
+        self.q.execute("DELETE FROM UpcomingEpisodes WHERE id = ?", (media_id,))
+
+        self._db.commit()
+
     # Megathreads
 
     @db_error_default(list)
