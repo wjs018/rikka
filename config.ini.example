@@ -25,6 +25,11 @@ submit = true
 # Option to have either the cover or banner image (if available) be the submitted link
 # Options are banner, cover, none (default)
 submit_image = none
+# Option to overwrite previous post urls to match current config options when editing
+# older posts. So, if old posts used cover image as post link, but then the config
+# changes to using banner, should the old posts get changed as well
+# default of false
+overwrite_url = false
 # Number of days to look ahead for upcoming episodes, default of 7 if unspecified
 days = 7
 # Enable or disable discovery of new shows, default false

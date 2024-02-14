@@ -595,7 +595,9 @@ def _edit_megathread(config, db, episode, url, submit=True, image_url=None):
     body = _format_post_text(config, db, episode, config.megathread_body)
 
     if submit:
-        lemmy.edit_text_post(url, body, image_url=image_url)
+        lemmy.edit_text_post(
+            url, body, link_url=image_url, overwrite_url=config.overwrite_url
+        )
     return None
 
 
@@ -632,7 +634,9 @@ def _edit_post(config, db, aired_episode, url, submit=True, image_url=None):
     _, body = _create_post_contents(config, db, aired_episode, submit=submit)
 
     if submit:
-        lemmy.edit_text_post(url, body, image_url=image_url)
+        lemmy.edit_text_post(
+            url, body, link_url=image_url, overwrite_url=config.overwrite_url
+        )
     return None
 
 

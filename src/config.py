@@ -36,6 +36,7 @@ class Config:
         self.countries = list()
         self.submit = None
         self.submit_image = None
+        self.overwrite_url = False
         self.days = None
         self.show_discovery = False
         self.nsfw_discovery = False
@@ -106,6 +107,7 @@ def from_file(file_path):
         config.min_comments = sec.getint("min_comments", 0)
         config.engagement_lag = sec.getint("engagement_lag", 24)
         config.disable_inactive = sec.getboolean("disable_inactive", False)
+        config.overwrite_url = sec.getboolean("overwrite_url", False)
 
         config.submit_image = sec.get("submit_image", None)
         if config.submit_image not in ["banner", "cover"]:

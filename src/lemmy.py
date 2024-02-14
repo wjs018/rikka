@@ -75,12 +75,20 @@ def submit_text_post(community, title, body, nsfw, url=None):
     return _extract_post_response(response)
 
 
-def edit_text_post(url, body, image_url=None):
+def edit_text_post(url, body, link_url=None, overwrite_url=True):
     _ensure_connection()
     post_id = _get_post_id_from_shortlink(url)
+
+    if not overwrite_url:
+        current_post = _l.post.get(post_id=post_id)
+        try:
+            link_url = current_post["post_view"]["post"]["url"]
+        except KeyError:
+            link_url = None
+
     try:
         info(f"Editing post {url}")
-        response = _l.post.edit(post_id, body=body, url=image_url)
+        response = _l.post.edit(post_id, body=body, url=link_url)
         return _extract_post_response(response)
     except:
         exception("Failed to submit text post")
