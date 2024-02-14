@@ -49,6 +49,36 @@ query ($page: Int, $start: Int, $end: Int) {
 
 def main(config, db, *args, **kwargs):
     """Main function for episode module"""
+
+    # First check if this is a manual thread addition
+    if len(args) not in [0, 3]:
+        error(
+            "Wrong number of args for episode module. Found {} args".format(len(args))
+        )
+        raise Exception("Wrong number of arguments")
+    elif len(args) == 3:
+        # Manual episode thread addition
+        debug("Manually adding a discussion thread to the database")
+
+        if args[0].isdigit():
+            debug("Fetching show with id {} from database".format(args[0]))
+            show = db.get_show(args[0])
+        else:
+            error("First argument should be show's AniList id number")
+            raise Exception("Improper first argument")
+
+        if not show:
+            error("Show doesn't exist in database, add it first")
+            raise Exception("Nonexistent show in database")
+
+        if not args[1].isdigit():
+            error("Second argument must be episode number")
+            raise Exception("Improper second argument")
+
+        # Getting to this point means we can add the thread to the database
+        db.add_episode(*args)
+        return
+
     lemmy.init_lemmy(config)
 
     # Check for new upcoming episodes, populate UpcomingEpisodes table

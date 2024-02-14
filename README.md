@@ -223,6 +223,26 @@ python src/rikka.py
 
 Also, if enabled in the config file, the episode module can discover new shows that match the specified criteria and populate the database with the show's information.
 
+An alternative way to use the episode module is that it can be used to manually add discussion threads to the database. This is done by providing additional arguments through the command line. There are three arguments to provide:
+
+1. The AniList id number
+2. The episode number
+3. The url pointing to the discussion thread
+
+A caveat to this is that the show must already exist in the database. So, if you want to manually add a discussion thread for a new show that doesn't exist, you must first add the show through the add module and then add the discussion thread. So, an example of this usage would be:
+
+```bash
+python src/rikka.py 457 80 https://lemmy.instance.tld/post/1234
+```
+
+or
+
+```bash
+python src/rikka.py -m episode 457 80 https://lemmy.instance.tld/post/1234
+```
+
+Both of these commands do the same thing. They add an episode 80 discussion thread link to the database for the show with an Anilist id of 457 (Mushishi). If there is an existing entry in the database for that show/episode combo, it will be overwritten. Make sure that whatever discussion threads are added to the database in this way are editable by the lemmy user in the config file or else errors will result when future episodes air and the manually added threads are unable to be updated by rikka.
+
 ## First Time Setup and Usage
 
 I have tried to walk through the steps of how to set up and run rikka for the first time.

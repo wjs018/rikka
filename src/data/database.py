@@ -218,14 +218,14 @@ class DatabaseDatabase:
     # Shows
 
     @db_error_default(list())
-    def get_aliases(self, show: Show) -> [str]:
+    def get_aliases(self, show: Show) -> List[str]:
         """Return list of aliases for a given Show object."""
 
         self.q.execute("SELECT alias FROM Aliases where id = ?", (show.id,))
         return [s for s, in self.q.fetchall()]
 
     @db_error_default(list())
-    def get_shows(self, enabled="enabled") -> [Show]:
+    def get_shows(self, enabled="enabled") -> List[Show]:
         """
         Query the database for list of Show objects.
 
