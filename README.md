@@ -56,6 +56,8 @@ The `min_comments` setting works similarly but instead of upvotes, it checks the
 
 To disable megathreads altogether and preserve behavior similar to holo, you can set `min_upvotes = 1` and `min_comments = 0`. These are the default values if these settings are not configured in the config file.
 
+Alternatively, setting `disable_inactive = true` causes rikka to simply disable a show and future discussion posts for shows in which the engagement metric is not met. This means that no megathreads get created nor standalone discussion posts. If the previous episode's enagement metrics aren't met, no post is made and the show is marked as disabled in the database, preventing future posts.
+
 ## Modules
 
 ### The `setup` Module
