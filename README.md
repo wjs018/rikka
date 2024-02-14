@@ -130,6 +130,12 @@ It is also possible to just remove all the disabled shows from the database by o
 python src/rikka.py -m remove
 ```
 
+Finally, it is possible to remove all shows marked as NSFW by AniList by providing the `nsfw` argument.
+
+```bash
+python src/rikka.py -m remove nsfw
+```
+
 ---
 
 ### The `update` Module
