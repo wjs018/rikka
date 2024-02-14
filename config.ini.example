@@ -41,6 +41,9 @@ min_comments = 0
 # Number of hours that need to have elapsed before engagement on previous episode is 
 # considered, default of 24
 engagement_lag = 24
+# Should shows that don't meet engagement threshold be disabled instead of put into a
+# megathread? default of false
+disable_inactive = false
 
 [post]
 title = {show_name} - Episode {episode} discussion
