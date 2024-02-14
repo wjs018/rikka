@@ -16,7 +16,7 @@ from data import database
 # Metadata
 name = "Rikka"
 description = "episode discussion bot"
-version = "0.4.4"
+version = "0.4.5"
 
 
 def main(config, args, extra_args):
