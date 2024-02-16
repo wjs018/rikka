@@ -16,7 +16,7 @@ from data import database
 # Metadata
 name = "Rikka"
 description = "episode discussion bot"
-version = "0.4.5"
+version = "0.5.0"
 
 
 def main(config, args, extra_args):
@@ -82,6 +82,12 @@ def main(config, args, extra_args):
 
             m.main(config, db, *extra_args)
 
+        elif config.module == "user_thread":
+            debug("Adding a user-created thread to the database")
+            import module_user_thread as m  # pylint: disable=import-outside-toplevel
+
+            m.main(config, db, *extra_args)
+
         elif config.module == "episode":
             debug("Searching for new episodes and making discussion posts")
             import module_episode as m  # pylint: disable=import-outside-toplevel
@@ -120,6 +126,7 @@ if __name__ == "__main__":
             "enable",
             "remove",
             "episode",
+            "user_thread",
         ],
         default=["episode"],
         help="runs the specified module",

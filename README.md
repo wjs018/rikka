@@ -20,6 +20,7 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
   - [edit_holo](https://github.com/wjs018/rikka?tab=readme-ov-file#the-edit_holo-module)
   - [edit_season](https://github.com/wjs018/rikka?tab=readme-ov-file#the-edit_season-module)
   - [episode](https://github.com/wjs018/rikka?tab=readme-ov-file#the-episode-module)
+  - [user_thread](https://github.com/wjs018/rikka?tab=readme-ov-file#the-user_thread-module)
 - [First Time Setup and Usage](https://github.com/wjs018/rikka?tab=readme-ov-file#first-time-setup-and-usage)
 - [Automating Rikka](https://github.com/wjs018/rikka?tab=readme-ov-file#automating-rikka)
 
@@ -231,7 +232,9 @@ python src/rikka.py
 
 Also, if enabled in the config file, the episode module can discover new shows that match the specified criteria and populate the database with the show's information.
 
-An alternative way to use the episode module is that it can be used to manually add discussion threads to the database. This is done by providing additional arguments through the command line. There are three arguments to provide:
+An alternative way to use the episode module is that it can be used to manually add discussion threads to the database. This is done by providing additional arguments through the command line. This method of manually adding discussion threads should be used only for threads that rikka is capable of editing (made by the specified lemmy user from the config). If the posts are not able to be edited by rikka, then errors will occur the next time there is an episode posted. For threads made by other users that are not editable, they should be added via the `user_thread` module instead.
+
+There are three arguments to provide:
 
 1. The AniList id number
 2. The episode number
@@ -250,6 +253,39 @@ python src/rikka.py -m episode 457 80 https://lemmy.instance.tld/post/1234
 ```
 
 Both of these commands do the same thing. They add an episode 80 discussion thread link to the database for the show with an Anilist id of 457 (Mushishi). If there is an existing entry in the database for that show/episode combo, it will be overwritten. Make sure that whatever discussion threads are added to the database in this way are editable by the lemmy user in the config file or else errors will result when future episodes air and the manually added threads are unable to be updated by rikka.
+
+### The user_thread Module
+
+The user_thread module is used to manually add user-created (non-editable) discussion threads to the database. This allows the thread to show up in the table of links for a show, but it will not try to edit the post and cause errors to happen after each new post is made. There are a couple different arguments you can provide:
+
+1. The url for the post
+2. The episode number (optional, see below)
+3. The AniList id for the show (optional, see below)
+
+Arguments 2 and 3 above are optional and can be inferred from the post information, but only if the post is formatted in a certain way. Specifically:
+
+- The episode number can be inferred from the post title if it contains the text "Episode XX" where XX is a number.
+- The AniList id can be inferred if the body of the post contains a link to the AniList page for the series.
+
+So, you can use this thread in a couple different ways.
+
+1. If the post title specifies the episode number and the post body has an AniList link:
+
+```bash
+python src/rikka.py -m user_thread https://lemmy.instance.tld/post/1234
+```
+
+2. If the post title specifies the episode number, but the body does not have an AniList link:
+
+```bash
+python src/rikka.py -m user_thread https://lemmy.instance.tld/post/1234 80
+```
+
+3. If neither the episode number of AniList link are provided:
+
+```bash
+python src/rikka.py -m user_thread https://lemmy.instance.tld/post/1234 80 457
+```
 
 ## First Time Setup and Usage
 

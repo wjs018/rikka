@@ -81,11 +81,12 @@ class Show(DbEqMixin):
 class Episode:
     """Class to handle Episode objects."""
 
-    def __init__(self, media_id, number, link=None):
+    def __init__(self, media_id, number, link=None, can_edit=True):
         # Note: arguments are order-sensitive
         self.media_id = media_id
         self.number = number
         self.link = link
+        self.can_edit = int(can_edit)
 
     def __str__(self):
         return "Show id: {}, Episode: {}, Link: {}".format(

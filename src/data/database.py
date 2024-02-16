@@ -165,6 +165,7 @@ class DatabaseDatabase:
             id  		INTEGER NOT NULL,
             episode		INTEGER NOT NULL,
             post_url	TEXT,
+            can_edit    INTEGER NOT NULL,
             UNIQUE(id, episode) ON CONFLICT REPLACE,
             FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
         )"""
@@ -500,7 +501,7 @@ class DatabaseDatabase:
     # Episodes
 
     @db_error
-    def add_episode(self, media_id, episode_num, post_url=None):
+    def add_episode(self, media_id, episode_num, post_url=None, can_edit=True):
         """
         Add an episode to the database.
 
@@ -508,6 +509,7 @@ class DatabaseDatabase:
                 show            id of the show for the episode
                 episode_num     The episode number
                 post_url        The url for the discussion post
+                can_edit        The post is editable by rikka
         """
 
         show = self.get_show(media_id)
@@ -519,8 +521,8 @@ class DatabaseDatabase:
         )
 
         self.q.execute(
-            "INSERT INTO Episodes (id, episode, post_url) VALUES (?, ?, ?)",
-            (show.id, episode_num, post_url),
+            "INSERT INTO Episodes (id, episode, post_url, can_edit) VALUES (?, ?, ?, ?)",
+            (show.id, episode_num, post_url, int(can_edit)),
         )
         self._db.commit()
 
@@ -531,12 +533,12 @@ class DatabaseDatabase:
         debug("Fetching the most recent episode for {}".format(show.name))
 
         self.q.execute(
-            "SELECT episode, post_url FROM Episodes WHERE id = ? ORDER BY episode DESC LIMIT 1",
+            "SELECT episode, post_url, can_edit FROM Episodes WHERE id = ? ORDER BY episode DESC LIMIT 1",
             (show.id,),
         )
         data = self.q.fetchone()
         if data is not None:
-            return Episode(show.id, data[0], data[1])
+            return Episode(show.id, data[0], data[1], data[2])
         return None
 
     @db_error_default(list())
@@ -547,10 +549,10 @@ class DatabaseDatabase:
 
         episodes = list()
         self.q.execute(
-            "SELECT episode, post_url FROM Episodes WHERE id = ?", (show.id,)
+            "SELECT episode, post_url, can_edit FROM Episodes WHERE id = ?", (show.id,)
         )
         for data in self.q.fetchall():
-            episodes.append(Episode(show.id, data[0], data[1]))
+            episodes.append(Episode(show.id, data[0], data[1], data[2]))
 
         if ensure_sorted:
             episodes = sorted(episodes, key=lambda e: e.number)
