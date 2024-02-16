@@ -1,6 +1,6 @@
 """Module for interacting with Lemmy"""
 
-from logging import info, error, exception
+from logging import info, error, exception, debug
 from pythorhead import Lemmy
 from dateutil.parser import parse
 
@@ -180,6 +180,38 @@ def get_post_comments(url):
         return None
 
     return response["post_view"]["counts"]["comments"]
+
+
+def get_post_body(url):
+    """Returns the body of a provided lemmy post url."""
+
+    _ensure_connection()
+    if not is_post_url(url):
+        return None
+
+    post_response = _l.post.get(post_id=_get_post_id_from_shortlink(url))
+
+    try:
+        return post_response["post_view"]["post"]["body"]
+    except KeyError:
+        debug("No post body found")
+        return None
+
+
+def get_post_title(url):
+    """Returns the title of a provided lemmy post url."""
+
+    _ensure_connection()
+    if not is_post_url(url):
+        return None
+
+    post_response = _l.post.get(post_id=_get_post_id_from_shortlink(url))
+
+    try:
+        return post_response["post_view"]["post"]["name"]
+    except KeyError:
+        debug("No post title found")
+        return None
 
 
 def get_comment_engagement(url):

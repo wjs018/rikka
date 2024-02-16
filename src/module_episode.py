@@ -122,6 +122,9 @@ def main(config, db, *args, **kwargs):
                     if lemmy.is_comment_url(editing_episode.link):
                         continue
 
+                    if not bool(editing_episode.can_edit):
+                        continue
+
                     if config.submit_image == "banner":
                         banner_image = db.get_banner_image(editing_episode.media_id)
                         if banner_image:
@@ -469,7 +472,7 @@ def _create_standalone_post(db, config, episode):
         info("Post title:\n{}".format(title))
 
         # Add episode to the Episodes table
-        db.add_episode(episode.media_id, episode.number, post_url)
+        db.add_episode(episode.media_id, episode.number, post_url, can_edit=True)
 
         # Remove the just-posted episode from the UpcomingEpisodes table
         db.remove_upcoming_episode(episode.media_id, episode.number)
