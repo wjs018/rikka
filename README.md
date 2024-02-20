@@ -232,27 +232,24 @@ python src/rikka.py
 
 Also, if enabled in the config file, the episode module can discover new shows that match the specified criteria and populate the database with the show's information.
 
-An alternative way to use the episode module is that it can be used to manually add discussion threads to the database. This is done by providing additional arguments through the command line. This method of manually adding discussion threads should be used only for threads that rikka is capable of editing (made by the specified lemmy user from the config). If the posts are not able to be edited by rikka, then errors will occur the next time there is an episode posted. For threads made by other users that are not editable, they should be added via the `user_thread` module instead.
-
-There are three arguments to provide:
+An alternative way to use the episode module is to manually specify which show and episode number a discussion thread should be made for. This will cause rikka to ignore engagement metrics and create a standalone post for the show/episode. There are two arguments that need to be provided:
 
 1. The AniList id number
 2. The episode number
-3. The url pointing to the discussion thread
 
-A caveat to this is that the show must already exist in the database. So, if you want to manually add a discussion thread for a new show that doesn't exist, you must first add the show through the add module and then add the discussion thread. So, an example of this usage would be:
+A caveat to this is that the show must already exist in the database. So, if you want to manually create a discussion thread for a new show that doesn't exist, you must first add the show through the add module and then create the discussion thread. So, an example of this usage would be:
 
 ```bash
-python src/rikka.py 457 80 https://lemmy.instance.tld/post/1234
+python src/rikka.py 457 80
 ```
 
 or
 
 ```bash
-python src/rikka.py -m episode 457 80 https://lemmy.instance.tld/post/1234
+python src/rikka.py -m episode 457 80
 ```
 
-Both of these commands do the same thing. They add an episode 80 discussion thread link to the database for the show with an Anilist id of 457 (Mushishi). If there is an existing entry in the database for that show/episode combo, it will be overwritten. Make sure that whatever discussion threads are added to the database in this way are editable by the lemmy user in the config file or else errors will result when future episodes air and the manually added threads are unable to be updated by rikka.
+Both of these commands do the same thing. They add an episode 80 discussion thread link to the database for the show with an Anilist id of 457 (Mushishi). If there is an existing entry in the database for that show/episode combo, it will be overwritten.
 
 ### The user_thread Module
 

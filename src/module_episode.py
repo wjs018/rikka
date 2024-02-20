@@ -50,15 +50,17 @@ query ($page: Int, $start: Int, $end: Int) {
 def main(config, db, *args, **kwargs):
     """Main function for episode module"""
 
+    manual_creation = False
+
     # First check if this is a manual thread addition
-    if len(args) not in [0, 3]:
+    if len(args) not in [0, 2]:
         error(
             "Wrong number of args for episode module. Found {} args".format(len(args))
         )
         raise Exception("Wrong number of arguments")
-    elif len(args) == 3:
-        # Manual episode thread addition
-        debug("Manually adding a discussion thread to the database")
+    elif len(args) == 2:
+        # Manual episode thread creation
+        debug("Manually creating a discussion thread")
 
         if args[0].isdigit():
             debug("Fetching show with id {} from database".format(args[0]))
@@ -75,37 +77,44 @@ def main(config, db, *args, **kwargs):
             error("Second argument must be episode number")
             raise Exception("Improper second argument")
 
-        # Getting to this point means we can add the thread to the database
-        db.add_episode(*args)
-        return
+        # Getting to this point means we can create the thread
+        current_time = datetime.now(timezone.utc)
+        manual_episode = UpcomingEpisode(args[0], args[1], current_time)
+
+        manual_creation = True
 
     lemmy.init_lemmy(config)
 
-    # Check for new upcoming episodes, populate UpcomingEpisodes table
-    info(
-        "Fetching all upcoming episodes from AniList for the next {} days.".format(
-            config.days
+    if not manual_creation:
+        # Check for new upcoming episodes, populate UpcomingEpisodes table
+        info(
+            "Fetching all upcoming episodes from AniList for the next {} days.".format(
+                config.days
+            )
         )
-    )
-    result = _add_update_upcoming_episodes(db=db, config=config)
+        result = _add_update_upcoming_episodes(db=db, config=config)
 
-    info(
-        "Found {} upcoming episodes and discovered {} new shows".format(
-            result[0], result[1]
+        info(
+            "Found {} upcoming episodes and discovered {} new shows".format(
+                result[0], result[1]
+            )
         )
-    )
 
-    # Check for episodes in UpcomingEpisodes table that have air dates prior to program
-    # runtime
-    info("Checking for episodes that have aired.")
-    current_time = int(time.time())
-    aired = _get_aired_episodes(db=db, current_time=current_time)
-    info("Found {} episodes that have aired.".format(len(aired)))
+        # Check for episodes in UpcomingEpisodes table that have air dates prior to program
+        # runtime
+        info("Checking for episodes that have aired.")
+        current_time = int(time.time())
+        aired = _get_aired_episodes(db=db, current_time=current_time)
+        info("Found {} episodes that have aired.".format(len(aired)))
+    else:
+        aired = [manual_episode]
 
     # For each aired episode, check if there is a previous thread
     for episode in aired:
         info("Processing aired episode {}".format(episode))
-        handled = _handle_episode_post(db, config, episode)
+        handled = _handle_episode_post(
+            db, config, episode, ignore_engagement=manual_creation
+        )
 
         if handled:
             debug("Successfully processed episode, editing posts")
@@ -355,7 +364,7 @@ def _get_airing_schedule(page, start, end, ratelimit=60):
     return return_list
 
 
-def _handle_episode_post(db, config, episode):
+def _handle_episode_post(db, config, episode, ignore_engagement=False):
     """
     Basic flow of how this function works:
 
@@ -380,6 +389,14 @@ def _handle_episode_post(db, config, episode):
     # Next, if this is a new show, make the post and return true
     if not most_recent:
         info("No previous episode found, making a new standalone post.")
+        created_post = _create_standalone_post(db, config, episode)
+        if created_post:
+            return True
+        return False
+
+    # Next, if this is a thread being manually created, ignore metrics
+    if ignore_engagement:
+        info("Manual thread creation, ignoring engagement metrics")
         created_post = _create_standalone_post(db, config, episode)
         if created_post:
             return True
