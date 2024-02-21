@@ -541,6 +541,23 @@ class DatabaseDatabase:
             return Episode(show.id, data[0], data[1], data[2])
         return None
 
+    @db_error_default(Episode)
+    def get_episode(self, show: Show, episode: int) -> Optional[Episode]:
+        """Get a specific episode for the given show and episode number"""
+
+        debug("Fetching episode {} for show {}".format(episode, show.name))
+
+        self.q.execute(
+            "SELECT episode, post_url, can_edit FROM Episodes WHERE id = ? AND "
+            "episode = ? LIMIT 1",
+            (show.id, episode),
+        )
+
+        data = self.q.fetchone()
+        if data is not None:
+            return Episode(show.id, data[0], data[1], data[2])
+        return None
+
     @db_error_default(list())
     def get_episodes(self, show, ensure_sorted=True) -> List[Episode]:
         """Get a list of episodes for a given Show object."""

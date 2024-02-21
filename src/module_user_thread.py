@@ -22,7 +22,7 @@ def main(config, db, *args, **kwargs):
     if len(args) == 1:
         # Need to get episode number from title
         post_title = lemmy.get_post_title(args[0])
-        episode_expression = re.compile(r"Episode [\d]+")
+        episode_expression = re.compile(r"(?i)Episode [\d]+")
         episode_match = re.findall(episode_expression, post_title)
         episode_number = int(episode_match[-1][8:])
 

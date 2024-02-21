@@ -73,7 +73,7 @@ def main(config, db, *args, **kwargs):
             error("Show doesn't exist in database, add it first")
             raise Exception("Nonexistent show in database")
 
-        if not args[1].isdigit():
+        if not str(args[1]).isdigit():
             error("Second argument must be episode number")
             raise Exception("Improper second argument")
 
