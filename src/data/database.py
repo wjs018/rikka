@@ -182,6 +182,16 @@ class DatabaseDatabase:
         )
 
         self.q.execute(
+            """CREATE TABLE IF NOT EXISTS IgnoredEpisodes (
+            id              INTEGER NOT NULL,
+            episode         INTEGER NOT NULL,
+            airing_time     INTEGER NOT NULL,
+            UNIQUE(id, episode) ON CONFLICT REPLACE,
+            FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
+        )"""
+        )
+
+        self.q.execute(
             """CREATE TABLE IF NOT EXISTS Megathreads (
             id              INTEGER NOT NULL,
             thread_num      INTEGER NOT NULL,
@@ -632,6 +642,38 @@ class DatabaseDatabase:
         self.q.execute("DELETE FROM UpcomingEpisodes WHERE id = ?", (media_id,))
 
         self._db.commit()
+
+    @db_error
+    def add_ignored_episode(self, upcoming_episode: UpcomingEpisode):
+        """Add an ignored episode to the table."""
+
+        media_id = upcoming_episode.media_id
+        episode_num = upcoming_episode.number
+        airing_time = upcoming_episode.airing_time
+
+        self.q.execute(
+            "INSERT INTO IgnoredEpisodes (id, episode, airing_time) VALUES (?, ?, ?)",
+            (media_id, episode_num, airing_time),
+        )
+
+        self._db.commit()
+
+    @db_error_default(UpcomingEpisode)
+    def get_ignored_episode(
+        self, media_id: int, episode: int
+    ) -> Optional[UpcomingEpisode]:
+        """Get an ignored episode from the database"""
+
+        self.q.execute(
+            "SELECT id, episode, airing_time FROM IgnoredEpisodes "
+            "WHERE id = ? AND episode = ? LIMIT 1",
+            (media_id, episode),
+        )
+
+        data = self.q.fetchone()
+        if data is not None:
+            return UpcomingEpisode(media_id, episode, data[2])
+        return None
 
     # Megathreads
 

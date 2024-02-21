@@ -261,17 +261,21 @@ def _add_update_upcoming_episodes(db, config):
                 debug("Found new show {}. Adding to database.".format(show["id"]))
                 new_show_list.append(show["id"])
 
-        added = add_update_shows_by_id(db, new_show_list)
+        added = add_update_shows_by_id(
+            db, new_show_list, enabled=config.discovery_enabled
+        )
         new_shows += added
-        enabled_show_ids = enabled_show_ids + new_show_list
+        if config.discovery_enabled:
+            enabled_show_ids = enabled_show_ids + new_show_list
+        else:
+            disabled_show_ids = disabled_show_ids + new_show_list
 
-    # Now with a full list of enabled show ids, add upcoming episodes for those shows
+    # Now with a full list of shows in the database, add the upcoming episodes
+    potential_shows = enabled_show_ids + disabled_show_ids
     for episode in found_episodes:
-        if episode.media_id not in enabled_show_ids:
-            continue
-
-        db.add_upcoming_episode(episode)
-        new_episodes += 1
+        if episode.media_id in potential_shows:
+            db.add_upcoming_episode(episode)
+            new_episodes += 1
 
     return [new_episodes, new_shows]
 
@@ -381,10 +385,24 @@ def _handle_episode_post(db, config, episode, ignore_engagement=False):
 
     created_post = False
     megathread_handled = False
+    disabled_show_ids = []
+    disabled_shows = db.get_shows(enabled="disabled")
+    for show in disabled_shows:
+        disabled_show_ids.append(show.id)
 
     # First, fetch previous episode, if it exists
     show = db.get_show(id=episode.media_id)
     most_recent = db.get_latest_episode(show)
+
+    # Check if the show is disabled. If so, create the ignored episode
+    if episode.media_id in disabled_show_ids:
+        info(
+            "Show id {} marked as disabled. Ignoring aired episode.".format(
+                episode.media_id
+            )
+        )
+        db.add_ignored_episode(episode)
+        return False
 
     # Next, if this is a new show, make the post and return true
     if not most_recent:
