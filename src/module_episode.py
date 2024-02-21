@@ -665,7 +665,7 @@ def _create_post_contents(config, db, aired_episode, submit=True, include_englis
 
     show = db.get_show(aired_episode.media_id)
 
-    if show.type == ShowType.MOVIE:
+    if show.type == ShowType.MOVIE.value:
         post_title = _create_movie_post_title(
             config, db, aired_episode, include_english=include_english
         )
