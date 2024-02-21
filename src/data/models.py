@@ -22,20 +22,20 @@ def str_to_showtype(string):
     if string is not None:
         string = string.lower()
         if string == "tv":
-            return ShowType.TV.value
+            return ShowType.TV
         if string == "tv_short":
-            return ShowType.TV_SHORT.value
+            return ShowType.TV_SHORT
         if string == "movie":
-            return ShowType.MOVIE.value
+            return ShowType.MOVIE
         if string == "special":
-            return ShowType.SPECIAL.value
+            return ShowType.SPECIAL
         if string == "ova":
-            return ShowType.OVA.value
+            return ShowType.OVA
         if string == "ona":
-            return ShowType.ONA.value
+            return ShowType.ONA
         if string == "music":
-            return ShowType.MUSIC.value
-    return ShowType.UNKNOWN.value
+            return ShowType.MUSIC
+    return ShowType.UNKNOWN
 
 
 class DbEqMixin:
