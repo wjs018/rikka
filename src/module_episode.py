@@ -100,14 +100,17 @@ def main(config, db, *args, **kwargs):
             )
         )
 
-        # Check for episodes in UpcomingEpisodes table that have air dates prior to program
-        # runtime
+        # Check for episodes in UpcomingEpisodes table that have air dates prior to
+        # program runtime
         info("Checking for episodes that have aired.")
         current_time = int(time.time())
         aired = _get_aired_episodes(db=db, current_time=current_time)
         info("Found {} episodes that have aired.".format(len(aired)))
     else:
         aired = [manual_episode]
+
+    # Clear out old ignored episodes from the database
+    db.remove_old_ignored_episodes(num_days=config.episode_retention)
 
     # For each aired episode, check if there is a previous thread
     for episode in aired:
@@ -402,6 +405,7 @@ def _handle_episode_post(db, config, episode, ignore_engagement=False):
             )
         )
         db.add_ignored_episode(episode)
+        db.remove_upcoming_episode(episode.media_id, episode.number)
         return False
 
     # Next, if this is a new show, make the post and return true

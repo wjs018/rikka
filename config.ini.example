@@ -32,10 +32,14 @@ submit_image = none
 overwrite_url = false
 # Number of days to look ahead for upcoming episodes, default of 7 if unspecified
 days = 7
+# Number of days to retain episodes that aired, but no thread was made, default of 30
+episode_retention = 30
 # Enable or disable discovery of new shows, default false
 show_discovery = false
 # Enable or disable discovery of nsfw shows
 nsfw_discovery = false
+# Should discovered shows be set to be enabled? Default false
+discovery_enabled = false
 # Minimum number of upvotes needed to keep a dedicated discussion post, default of 1
 # Setting this to <= 1 will disable this requirement since there is always >= 1 upvote
 min_upvotes = 1

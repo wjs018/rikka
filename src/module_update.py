@@ -34,6 +34,9 @@ def main(config, db, *args, **kwargs):
 
     num_shows = add_update_shows_by_id(db, show_ids, config.ratelimit)
 
+    # Clear out old ignored episodes from the database
+    db.remove_old_ignored_episodes(num_days=config.episode_retention)
+
     if num_shows != len(shows):
         error(
             "Number of updated shows does not match number of api queries. Some were \

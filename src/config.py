@@ -38,6 +38,7 @@ class Config:
         self.submit_image = None
         self.overwrite_url = False
         self.days = None
+        self.episode_retention = None
         self.show_discovery = False
         self.nsfw_discovery = False
         self.discovery_enabled = False
@@ -102,6 +103,7 @@ def from_file(file_path):
         config.debug = sec.getboolean("debug", False)
         config.submit = sec.getboolean("submit", True)
         config.days = sec.getint("days", 7)
+        config.episode_retention = sec.getint("episode_retention", 30)
         config.show_discovery = sec.getboolean("show_discovery", False)
         config.nsfw_discovery = sec.getboolean("nsfw_discovery", False)
         config.discovery_enabled = sec.getboolean("discovery_enabled", False)
