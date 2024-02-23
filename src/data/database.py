@@ -4,6 +4,7 @@ Module for interacting with the sqlite database used by rikka.
 
 import sqlite3
 import re
+import time
 
 from functools import wraps
 from logging import error, exception, debug
@@ -674,6 +675,28 @@ class DatabaseDatabase:
         if data is not None:
             return UpcomingEpisode(media_id, episode, data[2])
         return None
+
+    @db_error
+    def remove_ignored_episode(self, media_id: int, episode: int):
+        """Remove an ignored episode from the database"""
+
+        self.q.execute(
+            "DELETE FROM IgnoredEpisodes WHERE id = ? AND episode = ?",
+            (media_id, episode),
+        )
+
+        self._db.commit()
+
+    @db_error
+    def remove_old_ignored_episodes(self, num_days=30):
+        """Remove all ignored episodes after they have been ignored for a given time"""
+
+        current_time = int(time.time())
+        cutoff = current_time - (num_days * 24 * 60 * 60)
+
+        self.q.execute("DELETE FROM IgnoredEpisodes WHERE airing_time < ?", (cutoff,))
+
+        self._db.commit()
 
     # Megathreads
 
