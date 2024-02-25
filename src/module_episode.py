@@ -465,7 +465,6 @@ def _handle_episode_post(db, config, episode, ignore_engagement=False):
     # Did not meet thresholds, check if show should be disabled
     if config.disable_inactive:
         db.set_show_enabled(show, enabled=False)
-        db.remove_upcoming_episodes(show.id)
         return True
 
     # Did not meet thresholds, so set megathread status and handle the megathread

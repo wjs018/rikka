@@ -98,15 +98,6 @@ def _handle_message(db, config, message):
         error("No show with matching id found in database")
         return False
 
-    debug("Checking if show is already enabled")
-    if selected_show.enabled:
-        error_message += (
-            "Show is already being tracked for new episode releases. A new episode "
-            "discussion thread should be created when a new episode airs."
-        ) + message_ending
-        error("Show is already enabled and being tracked")
-        return False
-
     debug("Checking if there is an existing discussion thread for that episode")
     found_episode = db.get_episode(selected_show, episode_number)
 
@@ -116,6 +107,27 @@ def _handle_message(db, config, message):
             + message_ending
         )
         error("Found existing discussion thread at {}".format(found_episode.link))
+        return False
+
+    debug("Checking for a more recent episode for the show")
+    latest_episode = db.get_latest_episode(selected_show)
+
+    if latest_episode.number > episode_number:
+        error_message += (
+            "There already exists a more recent episode discussion thread for this "
+            "series. New discussion threads for older episodes are disabled."
+            + message_ending
+        )
+        error("Show has a more recent episode thread already")
+        return False
+
+    debug("Checking if show is already enabled")
+    if selected_show.enabled:
+        error_message += (
+            "Show is already being tracked for new episode releases. A new episode "
+            "discussion thread should be created when a new episode airs."
+        ) + message_ending
+        error("Show is already enabled and being tracked")
         return False
 
     debug("Checking for a candidate episode that was ignored")
