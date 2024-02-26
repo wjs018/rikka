@@ -73,7 +73,7 @@ def main(config, db, *args, **kwargs):
             error("Show doesn't exist in database, add it first")
             raise Exception("Nonexistent show in database")
 
-        if not args[1].isdigit():
+        if not str(args[1]).isdigit():
             error("Second argument must be episode number")
             raise Exception("Improper second argument")
 
@@ -100,14 +100,17 @@ def main(config, db, *args, **kwargs):
             )
         )
 
-        # Check for episodes in UpcomingEpisodes table that have air dates prior to program
-        # runtime
+        # Check for episodes in UpcomingEpisodes table that have air dates prior to
+        # program runtime
         info("Checking for episodes that have aired.")
         current_time = int(time.time())
         aired = _get_aired_episodes(db=db, current_time=current_time)
         info("Found {} episodes that have aired.".format(len(aired)))
     else:
         aired = [manual_episode]
+
+    # Clear out old ignored episodes from the database
+    db.remove_old_ignored_episodes(num_days=config.episode_retention)
 
     # For each aired episode, check if there is a previous thread
     for episode in aired:
@@ -261,17 +264,21 @@ def _add_update_upcoming_episodes(db, config):
                 debug("Found new show {}. Adding to database.".format(show["id"]))
                 new_show_list.append(show["id"])
 
-        added = add_update_shows_by_id(db, new_show_list)
+        added = add_update_shows_by_id(
+            db, new_show_list, enabled=config.discovery_enabled
+        )
         new_shows += added
-        enabled_show_ids = enabled_show_ids + new_show_list
+        if config.discovery_enabled:
+            enabled_show_ids = enabled_show_ids + new_show_list
+        else:
+            disabled_show_ids = disabled_show_ids + new_show_list
 
-    # Now with a full list of enabled show ids, add upcoming episodes for those shows
+    # Now with a full list of shows in the database, add the upcoming episodes
+    potential_shows = enabled_show_ids + disabled_show_ids
     for episode in found_episodes:
-        if episode.media_id not in enabled_show_ids:
-            continue
-
-        db.add_upcoming_episode(episode)
-        new_episodes += 1
+        if episode.media_id in potential_shows:
+            db.add_upcoming_episode(episode)
+            new_episodes += 1
 
     return [new_episodes, new_shows]
 
@@ -381,10 +388,25 @@ def _handle_episode_post(db, config, episode, ignore_engagement=False):
 
     created_post = False
     megathread_handled = False
+    disabled_show_ids = []
+    disabled_shows = db.get_shows(enabled="disabled")
+    for show in disabled_shows:
+        disabled_show_ids.append(show.id)
 
     # First, fetch previous episode, if it exists
     show = db.get_show(id=episode.media_id)
     most_recent = db.get_latest_episode(show)
+
+    # Check if the show is disabled. If so, create the ignored episode
+    if episode.media_id in disabled_show_ids:
+        info(
+            "Show id {} marked as disabled. Ignoring aired episode.".format(
+                episode.media_id
+            )
+        )
+        db.add_ignored_episode(episode)
+        db.remove_upcoming_episode(episode.media_id, episode.number)
+        return False
 
     # Next, if this is a new show, make the post and return true
     if not most_recent:
@@ -443,7 +465,6 @@ def _handle_episode_post(db, config, episode, ignore_engagement=False):
     # Did not meet thresholds, check if show should be disabled
     if config.disable_inactive:
         db.set_show_enabled(show, enabled=False)
-        db.remove_upcoming_episodes(show.id)
         return True
 
     # Did not meet thresholds, so set megathread status and handle the megathread
@@ -665,7 +686,7 @@ def _create_post_contents(config, db, aired_episode, submit=True, include_englis
 
     show = db.get_show(aired_episode.media_id)
 
-    if show.type == ShowType.MOVIE:
+    if show.type == ShowType.MOVIE.value:
         post_title = _create_movie_post_title(
             config, db, aired_episode, include_english=include_english
         )

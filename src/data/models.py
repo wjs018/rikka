@@ -204,3 +204,17 @@ class Image:
         text = "![{} image]({})".format(self.image_type, self.image_link)
 
         return text
+
+
+class PrivateMessage:
+    """Class used to define a private message in lemmy"""
+
+    def __init__(self, sender_id, message_id, message_contents):
+        self.sender_id = sender_id
+        self.message_id = message_id
+        self.message_contents = message_contents
+
+    def __str__(self):
+        return "sender id: {}\nmessage_id: {}\nmessage_contents: {}".format(
+            self.sender_id, self.message_id, self.message_contents
+        )

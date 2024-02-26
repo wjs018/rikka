@@ -4,6 +4,7 @@ Module for interacting with the sqlite database used by rikka.
 
 import sqlite3
 import re
+import time
 
 from functools import wraps
 from logging import error, exception, debug
@@ -173,6 +174,16 @@ class DatabaseDatabase:
 
         self.q.execute(
             """CREATE TABLE IF NOT EXISTS UpcomingEpisodes (
+            id              INTEGER NOT NULL,
+            episode         INTEGER NOT NULL,
+            airing_time     INTEGER NOT NULL,
+            UNIQUE(id, episode) ON CONFLICT REPLACE,
+            FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
+        )"""
+        )
+
+        self.q.execute(
+            """CREATE TABLE IF NOT EXISTS IgnoredEpisodes (
             id              INTEGER NOT NULL,
             episode         INTEGER NOT NULL,
             airing_time     INTEGER NOT NULL,
@@ -541,6 +552,23 @@ class DatabaseDatabase:
             return Episode(show.id, data[0], data[1], data[2])
         return None
 
+    @db_error_default(Episode)
+    def get_episode(self, show: Show, episode: int) -> Optional[Episode]:
+        """Get a specific episode for the given show and episode number"""
+
+        debug("Fetching episode {} for show {}".format(episode, show.name))
+
+        self.q.execute(
+            "SELECT episode, post_url, can_edit FROM Episodes WHERE id = ? AND "
+            "episode = ? LIMIT 1",
+            (show.id, episode),
+        )
+
+        data = self.q.fetchone()
+        if data is not None:
+            return Episode(show.id, data[0], data[1], data[2])
+        return None
+
     @db_error_default(list())
     def get_episodes(self, show, ensure_sorted=True) -> List[Episode]:
         """Get a list of episodes for a given Show object."""
@@ -613,6 +641,60 @@ class DatabaseDatabase:
         """Remove all upcoming episodes for a given show from the database."""
 
         self.q.execute("DELETE FROM UpcomingEpisodes WHERE id = ?", (media_id,))
+
+        self._db.commit()
+
+    @db_error
+    def add_ignored_episode(self, upcoming_episode: UpcomingEpisode):
+        """Add an ignored episode to the table."""
+
+        media_id = upcoming_episode.media_id
+        episode_num = upcoming_episode.number
+        airing_time = upcoming_episode.airing_time
+
+        self.q.execute(
+            "INSERT INTO IgnoredEpisodes (id, episode, airing_time) VALUES (?, ?, ?)",
+            (media_id, episode_num, airing_time),
+        )
+
+        self._db.commit()
+
+    @db_error_default(UpcomingEpisode)
+    def get_ignored_episode(
+        self, media_id: int, episode: int
+    ) -> Optional[UpcomingEpisode]:
+        """Get an ignored episode from the database"""
+
+        self.q.execute(
+            "SELECT id, episode, airing_time FROM IgnoredEpisodes "
+            "WHERE id = ? AND episode = ? LIMIT 1",
+            (media_id, episode),
+        )
+
+        data = self.q.fetchone()
+        if data is not None:
+            return UpcomingEpisode(media_id, episode, data[2])
+        return None
+
+    @db_error
+    def remove_ignored_episode(self, media_id: int, episode: int):
+        """Remove an ignored episode from the database"""
+
+        self.q.execute(
+            "DELETE FROM IgnoredEpisodes WHERE id = ? AND episode = ?",
+            (media_id, episode),
+        )
+
+        self._db.commit()
+
+    @db_error
+    def remove_old_ignored_episodes(self, num_days=30):
+        """Remove all ignored episodes after they have been ignored for a given time"""
+
+        current_time = int(time.time())
+        cutoff = current_time - (num_days * 24 * 60 * 60)
+
+        self.q.execute("DELETE FROM IgnoredEpisodes WHERE airing_time < ?", (cutoff,))
 
         self._db.commit()
 

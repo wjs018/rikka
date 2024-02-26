@@ -15,7 +15,6 @@ def main(config, db, *args, **kwargs):
             if show:
                 info("Show found in database, disabling")
                 db.set_show_enabled(show, enabled=False, commit=True)
-                db.remove_upcoming_episodes(show.id)
             else:
                 info("Show not found in database to disable")
 
@@ -29,7 +28,6 @@ def main(config, db, *args, **kwargs):
                 for show in shows:
                     if show.is_nsfw:
                         db.set_show_enabled(show, enabled=False, commit=True)
-                        db.remove_upcoming_episodes(show.id)
                         disabled_shows += 1
 
             info("Disabled {} nsfw shows found in the database".format(disabled_shows))

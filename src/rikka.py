@@ -94,6 +94,12 @@ def main(config, args, extra_args):
 
             m.main(config, db, *extra_args)
 
+        elif config.module == "listen":
+            debug("Checking for messages requesting newly created threads")
+            import module_listen as m  # pylint: disable=import-outside-toplevel
+
+            m.main(config, db, *extra_args)
+
     except:
         exception("Unknown exception or error")
         db._db.rollback()
@@ -127,6 +133,7 @@ if __name__ == "__main__":
             "remove",
             "episode",
             "user_thread",
+            "listen",
         ],
         default=["episode"],
         help="runs the specified module",

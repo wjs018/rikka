@@ -3,6 +3,7 @@
 from logging import info, error, exception, debug
 from pythorhead import Lemmy
 from dateutil.parser import parse
+from data.models import PrivateMessage
 
 # Initialization
 
@@ -261,6 +262,43 @@ def get_comment_comments(url):
     children = response["comment_view"]["counts"]["child_count"]
 
     return children
+
+
+def get_private_messages(number=20, unread_only=False):
+    """Returns the private messages of the lemmy user"""
+
+    _ensure_connection()
+    pms = []
+
+    messages = _l.private_message.list(unread_only=unread_only, page=1, limit=number)
+
+    try:
+        for pm in messages["private_messages"]:
+            sender_id = pm["private_message"]["creator_id"]
+            message_id = pm["private_message"]["id"]
+            message_contents = pm["private_message"]["content"]
+
+            pms.append(PrivateMessage(sender_id, message_id, message_contents))
+
+        return pms
+    except KeyError:
+        return None
+
+
+def set_private_message_read(message_id, read=True):
+    """Marks the private message as read"""
+
+    _ensure_connection()
+
+    _l.private_message.mark_as_read(private_message_id=message_id, read=read)
+
+
+def create_private_message(content, recipient):
+    """Create a private message to another user"""
+
+    _ensure_connection()
+
+    _l.private_message.create(content=content, recipient_id=recipient)
 
 
 # Utilities

@@ -21,6 +21,7 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
   - [edit_season](https://github.com/wjs018/rikka?tab=readme-ov-file#the-edit_season-module)
   - [episode](https://github.com/wjs018/rikka?tab=readme-ov-file#the-episode-module)
   - [user_thread](https://github.com/wjs018/rikka?tab=readme-ov-file#the-user_thread-module)
+  - [listen](https://github.com/wjs018/rikka?tab=readme-ov-file#the-listen-module)
 - [First Time Setup and Usage](https://github.com/wjs018/rikka?tab=readme-ov-file#first-time-setup-and-usage)
 - [Automating Rikka](https://github.com/wjs018/rikka?tab=readme-ov-file#automating-rikka)
 
@@ -272,16 +273,33 @@ So, you can use this thread in a couple different ways.
 python src/rikka.py -m user_thread https://lemmy.instance.tld/post/1234
 ```
 
-2. If the post title specifies the episode number, but the body does not have an AniList link:
+2. If the post body has an AniList link, but the post title does not specify the episode number:
 
 ```bash
 python src/rikka.py -m user_thread https://lemmy.instance.tld/post/1234 80
 ```
 
-3. If neither the episode number of AniList link are provided:
+3. If neither the episode number nor AniList link are provided:
 
 ```bash
 python src/rikka.py -m user_thread https://lemmy.instance.tld/post/1234 80 457
+```
+
+### The listen Module
+
+The listen module allows for users to private message the bot and request the creation of a discussion thread. The message to the bot needs to contain two elements:
+
+1. The AniList link to the piece of media
+2. Text specifying which episode the thread should be for, in the formate "Episode ##"
+
+So, if you were requesting an episode discussion thread for episode 80 of Mushishi, the message to rikka would simply be:
+
+> https://anilist.co/anime/457/Mushishi/ Episode 80
+
+When running the listen module, the lemmy user specified in the config file will check for unread private messages and then parse them, creating episode discussion posts as required. If an episode thread is created in this way, the show is also set to enabled in the database so that future episode discussion threads will be created, subject to engagement criteria. The listen module will pull the 20 most recent private messages, so make sure to run it at a high enough frequency to accomodate the volume of expected messages. It is run without arguments:
+
+```bash
+python src/rikka.py -m listen
 ```
 
 ## First Time Setup and Usage
