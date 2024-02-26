@@ -273,13 +273,13 @@ So, you can use this thread in a couple different ways.
 python src/rikka.py -m user_thread https://lemmy.instance.tld/post/1234
 ```
 
-2. If the post title specifies the episode number, but the body does not have an AniList link:
+2. If the post body has an AniList link, but the post title does not specify the episode number:
 
 ```bash
 python src/rikka.py -m user_thread https://lemmy.instance.tld/post/1234 80
 ```
 
-3. If neither the episode number of AniList link are provided:
+3. If neither the episode number nor AniList link are provided:
 
 ```bash
 python src/rikka.py -m user_thread https://lemmy.instance.tld/post/1234 80 457

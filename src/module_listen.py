@@ -121,15 +121,6 @@ def _handle_message(db, config, message):
         error("Show has a more recent episode thread already")
         return False
 
-    debug("Checking if show is already enabled")
-    if selected_show.enabled:
-        error_message += (
-            "Show is already being tracked for new episode releases. A new episode "
-            "discussion thread should be created when a new episode airs."
-        ) + message_ending
-        error("Show is already enabled and being tracked")
-        return False
-
     debug("Checking for a candidate episode that was ignored")
     ignored_episode = db.get_ignored_episode(anilist_id, episode_number)
 
