@@ -20,6 +20,7 @@ from .models import (
     Megathread,
     ExternalLink,
     Image,
+    SummaryPost,
 )
 
 
@@ -163,10 +164,11 @@ class DatabaseDatabase:
 
         self.q.execute(
             """CREATE TABLE IF NOT EXISTS Episodes (
-            id  		INTEGER NOT NULL,
-            episode		INTEGER NOT NULL,
-            post_url	TEXT,
-            can_edit    INTEGER NOT NULL,
+            id  		    INTEGER NOT NULL,
+            episode		    INTEGER NOT NULL,
+            post_url	    TEXT,
+            can_edit        INTEGER NOT NULL,
+            creation_time   INTEGER NOT NULL,
             UNIQUE(id, episode) ON CONFLICT REPLACE,
             FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
         )"""
@@ -189,6 +191,29 @@ class DatabaseDatabase:
             airing_time     INTEGER NOT NULL,
             UNIQUE(id, episode) ON CONFLICT REPLACE,
             FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
+        )"""
+        )
+
+        self.q.execute(
+            """CREATE TABLE IF NOT EXISTS LatestEpisodes (
+            id              INTEGER NOT NULL,
+            episode         INTEGER NOT NULL,
+            post_url        TEXT,
+            can_edit        INTEGER NOT NULL,
+            creation_time   INTEGER NOT NULL,
+            UNIQUE(id) ON CONFLICT REPLACE,
+            FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
+        )"""
+        )
+
+        self.q.execute(
+            """CREATE TABLE IF NOT EXISTS SummaryPosts (
+            number          INTEGER NOT NULL,
+            post_url        TEXT,
+            pinned          INTEGER NOT NULL,
+            creation_time   INTEGER NOT NULL,
+            last_update     INTEGER NOT NULL,
+            UNIQUE(number) ON CONFLICT REPLACE
         )"""
         )
 
@@ -376,7 +401,9 @@ class DatabaseDatabase:
             self._db.commit()
 
     @db_error_default(None)
-    def update_show(self, show_id: int, raw_show: UnprocessedShow, commit=True):
+    def update_show(
+        self, show_id: int, raw_show: UnprocessedShow, commit=True, ignore_enabled=False
+    ):
         """Update a show in the database."""
 
         debug("Updating show: {}".format(raw_show))
@@ -406,7 +433,12 @@ class DatabaseDatabase:
         show_type = raw_show.show_type
         has_source = raw_show.has_source
         is_nsfw = raw_show.is_nsfw
-        enabled = raw_show.is_airing
+
+        if not ignore_enabled:
+            enabled = raw_show.is_airing
+        else:
+            db_show = self.get_show(id=show_id)
+            enabled = db_show.enabled
 
         if id_mal:
             self.q.execute(
@@ -512,15 +544,18 @@ class DatabaseDatabase:
     # Episodes
 
     @db_error
-    def add_episode(self, media_id, episode_num, post_url=None, can_edit=True):
+    def add_episode(
+        self, media_id, episode_num, post_url=None, can_edit=True, creation_time=None
+    ):
         """
         Add an episode to the database.
 
             Parameters:
-                show            id of the show for the episode
-                episode_num     The episode number
-                post_url        The url for the discussion post
-                can_edit        The post is editable by rikka
+                show                id of the show for the episode
+                episode_num         The episode number
+                post_url            The url for the discussion post
+                can_edit            The post is editable by rikka
+                creation_time       The unix timestamp that the post was created
         """
 
         show = self.get_show(media_id)
@@ -531,9 +566,13 @@ class DatabaseDatabase:
             )
         )
 
+        if not creation_time:
+            creation_time = int(time.time())
+
         self.q.execute(
-            "INSERT INTO Episodes (id, episode, post_url, can_edit) VALUES (?, ?, ?, ?)",
-            (show.id, episode_num, post_url, int(can_edit)),
+            "INSERT INTO Episodes (id, episode, post_url, can_edit, creation_time) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (show.id, episode_num, post_url, int(can_edit), creation_time),
         )
         self._db.commit()
 
@@ -544,12 +583,13 @@ class DatabaseDatabase:
         debug("Fetching the most recent episode for {}".format(show.name))
 
         self.q.execute(
-            "SELECT episode, post_url, can_edit FROM Episodes WHERE id = ? ORDER BY episode DESC LIMIT 1",
+            "SELECT episode, post_url, can_edit, creation_time FROM Episodes WHERE "
+            "id = ? ORDER BY episode DESC LIMIT 1",
             (show.id,),
         )
         data = self.q.fetchone()
         if data is not None:
-            return Episode(show.id, data[0], data[1], data[2])
+            return Episode(show.id, *data)
         return None
 
     @db_error_default(Episode)
@@ -559,14 +599,14 @@ class DatabaseDatabase:
         debug("Fetching episode {} for show {}".format(episode, show.name))
 
         self.q.execute(
-            "SELECT episode, post_url, can_edit FROM Episodes WHERE id = ? AND "
-            "episode = ? LIMIT 1",
+            "SELECT episode, post_url, can_edit, creation_time FROM Episodes WHERE "
+            "id = ? AND episode = ? LIMIT 1",
             (show.id, episode),
         )
 
         data = self.q.fetchone()
         if data is not None:
-            return Episode(show.id, data[0], data[1], data[2])
+            return Episode(show.id, *data)
         return None
 
     @db_error_default(list())
@@ -577,13 +617,34 @@ class DatabaseDatabase:
 
         episodes = list()
         self.q.execute(
-            "SELECT episode, post_url, can_edit FROM Episodes WHERE id = ?", (show.id,)
+            "SELECT episode, post_url, can_edit, creation_time FROM Episodes WHERE "
+            "id = ?",
+            (show.id,),
         )
         for data in self.q.fetchall():
-            episodes.append(Episode(show.id, data[0], data[1], data[2]))
+            episodes.append(Episode(show.id, *data))
 
         if ensure_sorted:
             episodes = sorted(episodes, key=lambda e: e.number)
+        return episodes
+
+    @db_error_default(list())
+    def get_recent_episodes(self, num_days=8):
+        """Return all Episodes within the past num_days"""
+
+        current_time = int(time.time())
+        cutoff_time = current_time - (num_days * 24 * 60 * 60)
+        episodes = list()
+
+        self.q.execute(
+            "SELECT id, episode, post_url, can_edit, creation_time FROM Episodes WHERE "
+            "creation_time > ?",
+            (cutoff_time,),
+        )
+
+        for data in self.q.fetchall():
+            episodes.append(Episode(*data))
+
         return episodes
 
     @db_error
@@ -697,6 +758,129 @@ class DatabaseDatabase:
         self.q.execute("DELETE FROM IgnoredEpisodes WHERE airing_time < ?", (cutoff,))
 
         self._db.commit()
+
+    @db_error
+    def build_latest_episodes(self, num_days=8):
+        """
+        Adds the most recent Episode to the LatestEpisodes table if it was created
+        within the past num_days
+        """
+
+        # First, get all episodes created more recently than num_days ago
+        recent_episodes = self.get_recent_episodes(num_days=num_days)
+
+        # Next, iterate through, getting the latest episode for each show
+        for recent_episode in recent_episodes:
+            show = self.get_show(recent_episode.media_id)
+            most_recent = self.get_latest_episode(show=show)
+            self.add_latest_episode(most_recent)
+
+    @db_error
+    def prune_latest_episodes(self, num_days=8):
+        """
+        Prunes LatestEpisodes table of items created more than num_days in the past.
+        """
+
+        current_time = int(time.time())
+        cutoff = current_time - (num_days * 24 * 60 * 60)
+
+        self.q.execute("DELETE FROM LatestEpisodes WHERE creation_time < ?", (cutoff,))
+
+        self._db.commit()
+
+    @db_error
+    def add_latest_episode(self, episode: Episode):
+        """Adds an episode to the LatestEpisodes table"""
+
+        self.q.execute(
+            "INSERT INTO LatestEpisodes (id, episode, post_url, can_edit, creation_time)"
+            " VALUES (?, ?, ?, ?, ?)",
+            (
+                episode.media_id,
+                episode.number,
+                episode.link,
+                int(episode.can_edit),
+                episode.creation_time,
+            ),
+        )
+        self._db.commit()
+
+    @db_error_default(list)
+    def get_latest_episodes(self):
+        """Returns a list of all the Episode objects in LatestEpisodes table"""
+
+        latest_episodes = []
+
+        self.q.execute("SELECT * FROM LatestEpisodes ORDER BY creation_time DESC")
+
+        for row in self.q.fetchall():
+            latest_episodes.append(Episode(*row))
+
+        return latest_episodes
+
+    @db_error
+    def add_summary_post(self, summary_post: SummaryPost):
+        """Adds a summary post to the SummaryPosts table."""
+
+        self.q.execute(
+            "INSERT INTO SummaryPosts (number, post_url, pinned, creation_time, "
+            "last_update) VALUES (?, ?, ?, ?, ?)",
+            (
+                summary_post.number,
+                summary_post.post_url,
+                summary_post.pinned,
+                summary_post.creation_time,
+                summary_post.last_update,
+            ),
+        )
+        self._db.commit()
+
+    @db_error_default(SummaryPost)
+    def get_summary_post(self, number):
+        """Fetches a specific SummaryPost"""
+
+        self.q.execute(
+            "SELECT post_url, pinned, creation_time, last_update FROM SummaryPosts "
+            "WHERE number = ?",
+            (number,),
+        )
+
+        data = self.q.fetchone()
+        if data is not None:
+            return SummaryPost(number=number, *data)
+        else:
+            return None
+
+    @db_error_default(SummaryPost)
+    def get_latest_summary_post(self):
+        """Fetches the most recent summary post"""
+
+        self.q.execute(
+            "SELECT number, post_url, pinned, creation_time, last_update FROM "
+            "SummaryPosts ORDER BY number DESC LIMIT 1"
+        )
+
+        data = self.q.fetchone()
+        if data is not None:
+            return SummaryPost(*data)
+        else:
+            return None
+
+    @db_error_default(list)
+    def get_pinned_summary_posts(self):
+        """Fetches any summary posts that are marked as pinned"""
+
+        summary_posts = []
+
+        self.q.execute(
+            "SELECT number, post_url, pinned, creation_time, last_update FROM "
+            "SummaryPosts WHERE pinned = 1"
+        )
+
+        for post in self.q.fetchall():
+            summary_posts.append(SummaryPost(*post))
+
+        return summary_posts
 
     # Megathreads
 

@@ -43,7 +43,9 @@ query ($page: Int, $id_in: [Int]) {
 """
 
 
-def add_update_shows_by_id(db, show_ids, ratelimit=60, enabled=True):
+def add_update_shows_by_id(
+    db, show_ids, ratelimit=60, enabled=True, ignore_enabled=False
+):
     """
     Either adds shows in the given id list if it isn't already in the database, or
     updates an existing show if it is already in the database with fresh info from
@@ -87,7 +89,9 @@ def add_update_shows_by_id(db, show_ids, ratelimit=60, enabled=True):
         db_show = check_if_exists(db, raw_show.media_id)
         if db_show:
             debug("Found show in database, updating")
-            db.update_show(raw_show.media_id, raw_show, commit=True)
+            db.update_show(
+                raw_show.media_id, raw_show, commit=True, ignore_enabled=ignore_enabled
+            )
         else:
             debug("Did not find show in database, adding it")
             db.add_show(raw_show, commit=True)
@@ -305,3 +309,19 @@ def meet_discovery_criteria(db, config, media_dict):
         return False
 
     return True
+
+
+class _SafeDict(dict):
+    def __missing__(self, key):
+        return "{" + key + "}"
+
+
+def safe_format(s, **kwargs):
+    """
+    A safer version of the default str.format(...) function.
+    Ignores unused keyword arguments and unused '{...}' placeholders instead of throwing a KeyError.
+    :param s: The string being formatted
+    :param kwargs: The format replacements
+    :return: A formatted string
+    """
+    return s.format_map(_SafeDict(**kwargs))

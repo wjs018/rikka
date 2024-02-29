@@ -47,6 +47,8 @@ def main(config, db, *args, **kwargs):
             lemmy.set_private_message_read(message.message_id, True)
             lemmy.create_private_message(reply_message, recipient=message.sender_id)
 
+            db.remove_ignored_episode(episode.media_id, episode.number)
+
 
 def _handle_message(db, config, message):
     """Parses and handles a private message"""
@@ -112,14 +114,15 @@ def _handle_message(db, config, message):
     debug("Checking for a more recent episode for the show")
     latest_episode = db.get_latest_episode(selected_show)
 
-    if latest_episode.number > episode_number:
-        error_message += (
-            "There already exists a more recent episode discussion thread for this "
-            "series. New discussion threads for older episodes are disabled."
-            + message_ending
-        )
-        error("Show has a more recent episode thread already")
-        return False
+    if latest_episode:
+        if latest_episode.number > episode_number:
+            error_message += (
+                "There already exists a more recent episode discussion thread for this "
+                "series. New discussion threads for older episodes are disabled."
+                + message_ending
+            )
+            error("Show has a more recent episode thread already")
+            return False
 
     debug("Checking for a candidate episode that was ignored")
     ignored_episode = db.get_ignored_episode(anilist_id, episode_number)

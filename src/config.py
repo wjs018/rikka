@@ -62,6 +62,12 @@ class Config:
         self.movie_post_body = None
         self.post_formats = dict()
 
+        # summary section
+        self.summary_days = None
+        self.pin_summary = False
+        self.summary_title = None
+        self.summary_body = None
+
         # megathread section
         self.megathread_episodes = None
         self.megathread_title = None
@@ -115,7 +121,7 @@ def from_file(file_path):
 
         config.submit_image = sec.get("submit_image", None)
         if config.submit_image not in ["banner", "cover"]:
-            config.submit = None
+            config.submit_image = None
 
         config.new_show_types.extend(
             map(
@@ -142,6 +148,13 @@ def from_file(file_path):
         for key in sec:
             if key.startswith("format_") and len(key) > 7:
                 config.post_formats[key[7:]] = sec[key]
+
+    if "summary" in parsed:
+        sec = parsed["summary"]
+        config.summary_days = sec.getint("summary_days", 8)
+        config.pin_summary = sec.getboolean("pin_summary", False)
+        config.summary_title = sec.get("summary_title", None)
+        config.summary_body = sec.get("summary_body", None)
 
     if "megathread" in parsed:
         sec = parsed["megathread"]

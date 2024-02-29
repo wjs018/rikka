@@ -32,7 +32,9 @@ def main(config, db, *args, **kwargs):
 
     info("Updating {} shows in the database".format(len(shows)))
 
-    num_shows = add_update_shows_by_id(db, show_ids, config.ratelimit)
+    num_shows = add_update_shows_by_id(
+        db, show_ids, config.ratelimit, ignore_enabled=True
+    )
 
     # Clear out old ignored episodes from the database
     db.remove_old_ignored_episodes(num_days=config.episode_retention)

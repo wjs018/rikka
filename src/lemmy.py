@@ -2,6 +2,7 @@
 
 from logging import info, error, exception, debug
 from pythorhead import Lemmy
+from pythorhead.types.feature import FeatureType
 from dateutil.parser import parse
 from data.models import PrivateMessage
 
@@ -61,9 +62,6 @@ def _get_host_instance():
         return _config.l_community.split("@")[-1]
     else:
         return _config.l_instance
-
-
-# Thing doing
 
 
 def submit_text_post(community, title, body, nsfw, url=None):
@@ -215,6 +213,23 @@ def get_post_title(url):
         return None
 
 
+def feature_post(post_url, featured):
+    """Pins or unpins a post to the community"""
+
+    _ensure_connection()
+    if not is_post_url(post_url):
+        return None
+
+    feature_type = FeatureType.Community
+    post_id = _get_post_id_from_shortlink(post_url)
+
+    result = _l.post.feature(
+        post_id=post_id, feature=featured, feature_type=feature_type
+    )
+
+    return result
+
+
 def get_comment_engagement(url):
     """Returns [num_upvotes, num_comments] for a given lemmy comment url."""
 
@@ -299,9 +314,6 @@ def create_private_message(content, recipient):
     _ensure_connection()
 
     _l.private_message.create(content=content, recipient_id=recipient)
-
-
-# Utilities
 
 
 def get_shortlink_from_id(id):
