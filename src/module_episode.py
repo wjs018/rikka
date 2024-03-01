@@ -683,7 +683,6 @@ def _create_post(config, title, body, nsfw, submit=True, url=None):
         new_post = lemmy.submit_text_post(
             config.l_community, title, body, nsfw, url=url
         )
-        print("here")
         if new_post is not None:
             debug("Post successful")
             return lemmy.get_shortlink_from_id(new_post["id"])
