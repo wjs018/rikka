@@ -14,7 +14,7 @@ def main(config, db, *args, **kwargs):
 
     if len(args) not in [0, 1]:
         error(
-            "Incorrect number of arguments, should be 0 or 1. Found {} arguments".format(
+            "Incorrect number of arguments, not 0 or 1. Found {} arguments".format(
                 len(args)
             )
         )
@@ -30,6 +30,9 @@ def main(config, db, *args, **kwargs):
         handled = _update_summary_post(db, config)
         if handled:
             info("Successuflly updated summary post")
+    else:
+        error("Unknown argument provided: {}".format(args[0]))
+        raise Exception("Unknown argument provided")
 
     if not handled:
         error("Problem creating/updating summary post")
@@ -111,7 +114,17 @@ def _update_summary_post(db, config):
     # Fetch the most recent summary post
     latest_summary = db.get_latest_summary_post()
 
-    # Create the lemmy post
+    if not latest_summary:
+        error("No existing summary post found to update")
+        return False
+
+    # Check if an update is needed
+    latest_summary_body = lemmy.get_post_body(latest_summary.post_url)
+    if post_body == latest_summary_body:
+        info("Summary post is unchanged. No update needed.")
+        return True
+
+    # Update the lemmy post
     info("Updating the latest summary post on lemmy")
     updated_post = lemmy.edit_text_post(url=latest_summary.post_url, body=post_body)
 
