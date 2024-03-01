@@ -8,7 +8,12 @@ from datetime import datetime, timezone
 
 import lemmy
 from config import min_ns, api_call_times
-from helper_functions import URL, add_update_shows_by_id, meet_discovery_criteria
+from helper_functions import (
+    URL,
+    add_update_shows_by_id,
+    meet_discovery_criteria,
+    safe_format,
+)
 from data.models import (
     UpcomingEpisode,
     str_to_showtype,
@@ -509,8 +514,17 @@ def _create_standalone_post(db, config, episode):
         info("Post made at url: {}".format(post_url))
         info("Post title:\n{}".format(title))
 
+        post_time = lemmy.get_publish_time(post_url)
+        post_time = int(time.mktime(post_time.timetuple()))
+
         # Add episode to the Episodes table
-        db.add_episode(episode.media_id, episode.number, post_url, can_edit=True)
+        db.add_episode(
+            episode.media_id,
+            episode.number,
+            post_url,
+            can_edit=True,
+            creation_time=post_time,
+        )
 
         # Remove the just-posted episode from the UpcomingEpisodes table
         db.remove_upcoming_episode(episode.media_id, episode.number)
@@ -553,8 +567,17 @@ def _handle_megathread(db, config, episode):
             link = lemmy.get_commentlink_from_id(response["id"])
             info("Comment made at {}".format(link))
 
+            post_time = lemmy.get_publish_time(link)
+            post_time = int(post_time.timetuple())
+
             debug("Writing new episode to database")
-            db.add_episode(episode.media_id, episode.number, link)
+            db.add_episode(
+                episode.media_id,
+                episode.number,
+                link,
+                can_edit=True,
+                creation_time=post_time,
+            )
             db.increment_num_episodes(megathread)
             db.remove_upcoming_episode(episode.media_id, episode.number)
 
@@ -857,19 +880,3 @@ def _gen_text_cover(db, formats, show):
         return ""
 
     return cover_image.to_markdown()
-
-
-class _SafeDict(dict):
-    def __missing__(self, key):
-        return "{" + key + "}"
-
-
-def safe_format(s, **kwargs):
-    """
-    A safer version of the default str.format(...) function.
-    Ignores unused keyword arguments and unused '{...}' placeholders instead of throwing a KeyError.
-    :param s: The string being formatted
-    :param kwargs: The format replacements
-    :return: A formatted string
-    """
-    return s.format_map(_SafeDict(**kwargs))

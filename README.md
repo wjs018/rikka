@@ -22,6 +22,7 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
   - [episode](https://github.com/wjs018/rikka?tab=readme-ov-file#the-episode-module)
   - [user_thread](https://github.com/wjs018/rikka?tab=readme-ov-file#the-user_thread-module)
   - [listen](https://github.com/wjs018/rikka?tab=readme-ov-file#the-listen-module)
+  - [summary](https://github.com/wjs018/rikka?tab=readme-ov-file#the-summary-module)
 - [First Time Setup and Usage](https://github.com/wjs018/rikka?tab=readme-ov-file#first-time-setup-and-usage)
 - [Automating Rikka](https://github.com/wjs018/rikka?tab=readme-ov-file#automating-rikka)
 
@@ -142,7 +143,7 @@ python src/rikka.py -m remove nsfw
 
 ### The `update` Module
 
-The update module will fetch updated show information from the AniList API and populate the database with it. By default, it will only update the shows that are marked as enabled in the database. This can be modified through the cli. Additionally, if the show is marked as finished airing or cancelled by AniList when the api call is made, the show will be disabled in the rikka database. Conversely, if you choose to update all or disabled shows, then shows that you have manually marked as disabled may be re-enabled through the update if they are still airing.
+The update module will fetch updated show information from the AniList API and populate the database with it. By default, it will only update the shows that are marked as enabled in the database. This can be modified through the cli. This module will not enable or disable shows in the database.
 
 #### Update only enabled shows information
 
@@ -302,6 +303,22 @@ When running the listen module, the lemmy user specified in the config file will
 python src/rikka.py -m listen
 ```
 
+### The summary Module
+
+The summary module is used to create and update a list of all the most recent discussion threads created by rikka. Typical usage would be to have a pinned post to a community in which all the recently created discussion threads are listed in a table for users to easily access the thread that they want without having to manually find it in the community feed. This module is configured in its own section of the config file and has a couple options. `summary_days` specifies how many days ago a thread could be made and still be included in the summary post. `pin_summary` is a Boolean that specifies whether the summary post that is created/updated should be pinned to the community. This requires that the lemmy user is at least a moderator for the community.
+
+There are two ways to run the summary module. First, to create a new summary post, run without arguments:
+
+```bash
+python src/rikka.py -m summary
+```
+
+Alternatively, to simply update the most recently created summary post, run with the `update` argument:
+
+```bash
+python src/rikka.py -m summary update
+```
+
 ## First Time Setup and Usage
 
 I have tried to walk through the steps of how to set up and run rikka for the first time.
@@ -369,7 +386,25 @@ The `episode` module is the module that finds newly aired episodes, makes discus
 8. Occasionally, you might want to update the metadata of shows that are in the database. This is done with the `update` module. It does not need to be run as frequently as the `episode` module. Once per week is more than enough. Also, it is not necessary to update after adding a new show/shows. When a new show is added to the database using either edit module, the add module, or through show discovery, the metadata is updated automatically. For details on the `update` module, see the [module section above](https://github.com/wjs018/rikka?tab=readme-ov-file#the-update-module).
 
 ```bash
-python src/rikka.py -m update
+python src/rikka.py -m update all
+```
+
+9. To enable thread requesting via private message, the `listen` module should also be run fairly frequently. A frequency of 5 minutes should be more than responsive enough for typical usage. This module will only create threads for episodes that have already aired, but no existing thread was made for it. So, nothing will happen when running this module until some time has gone by.
+
+```bash
+python src/rikka.py -m listen
+```
+
+10. To create and update a summary post of all threads, you can run the `summary` module at a similar frequency to the `episode` module. The post will not have any episodes listed initially until there are discussion threads that get created. The first time this module is run, it should be run without arguments to create the summary thread:
+
+```bash
+python src/rikka.py -m summary
+```
+
+Then, subsequent calls should be run with the `update` argument:
+
+```bash
+python src/rikka.py -m summary update
 ```
 
 ## Automating rikka
@@ -378,12 +413,14 @@ I have a couple best practices I have developed over the course of my time worki
 
 | Module                                             |     Run freq     | Command                                          |
 | :------------------------------------------------- | :--------------: | :----------------------------------------------- |
+| `listen`:<br>Check private messages                | every 5 minutes  | `python src/rikka.py -m listen`                  |
+| `summary`:<br>Update summary post                  | every 5 minutes  | `python src/rikka.py -m summary update`          |
 | `episode`:<br>Find new episodes                    | every 15 minutes | `python src/rikka.py`                            |
 | `update`:<br>Update show information               |    every week    | `python src/rikka.py -m update all`              |
 | `edit_season`:<br>Load or modify shows in database | once per season  | `python src/rikka.py -m edit_season season year` |
 | Others                                             |      manual      | module dependent                                 |
 
-I schedule these through the use of a shell script and cron on my server. A simple example version of the shell script I use for the `episode` module follows (change folders/paths to fit your environment).
+I schedule these through the use of shell scripts and cron on my server. A simple example version of the shell script I use for the `episode` module follows (change folders/paths to fit your environment).
 
 ```sh
 # Activate venv
@@ -394,15 +431,22 @@ cd /home/rikka-user/rikka/
 
 # Run episode module
 python src/rikka.py
+
+# Run listen module
+python src/rikka.py -m listen
+
+# Run summary module
+python src/rikka.py -m summary update
 ```
 
-I then schedule this to run every 15 minutes with logging written out to a file using cron. Below, I have written out my crontab entry:
+I have two different versions of this script that I run at different times. Every 15 minutes, I run the script above, and then every 5 minutes between those 15 minute intervals, I run a version that is just the listen and summary modules. I write the log for both out to the same file. Below, I have written out my crontab entries for this setup:
 
 ```
-*/15 * * * * /home/rikka-user/run_rikka.sh >> /home/rikka-user/rikka-log.log 2>&1
+0,15,30,45 * * * * /home/rikka-user/run_rikka_episode_listen_summary.sh >> /home/rikka-user/rikka-log.log 2>&1
+5,10,20,25,35,40,50,55 * * * * /home/rikka-user/run_rikka_listen_summary.sh >> /home/rikka-user/rikka-log.log 2>&1
 ```
 
-This would log all the output of rikka to the `rikka-log.log` file. So, to prevent an ever-ballooning log file, I set up logrotate to keep things in check. This is done by adding a block at the end of `/etc/logrotate.conf` on most servers. I use the following config block on my server:
+This would log all the output of rikka to the `rikka-log.log` file. So, to prevent an ever-ballooning log file, I set up logrotate to keep things in check. This is done by adding a block at the end of `/etc/logrotate.conf` on most distributions. I use the following config block on my server:
 
 ```
 /home/rikka-user/rikka-log.log {

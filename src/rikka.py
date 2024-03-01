@@ -16,7 +16,7 @@ from data import database
 # Metadata
 name = "Rikka"
 description = "episode discussion bot"
-version = "0.5.0"
+version = "0.6.0"
 
 
 def main(config, args, extra_args):
@@ -100,6 +100,12 @@ def main(config, args, extra_args):
 
             m.main(config, db, *extra_args)
 
+        elif config.module == "summary":
+            debug("Creating or updating a summary post")
+            import module_summary as m  # pylint: disable=import-outside-toplevel
+
+            m.main(config, db, *extra_args)
+
     except:
         exception("Unknown exception or error")
         db._db.rollback()
@@ -134,6 +140,7 @@ if __name__ == "__main__":
             "episode",
             "user_thread",
             "listen",
+            "summary",
         ],
         default=["episode"],
         help="runs the specified module",

@@ -81,17 +81,38 @@ class Show(DbEqMixin):
 class Episode:
     """Class to handle Episode objects."""
 
-    def __init__(self, media_id, number, link=None, can_edit=True):
+    def __init__(self, media_id, number, link=None, can_edit=True, creation_time=None):
         # Note: arguments are order-sensitive
         self.media_id = media_id
         self.number = number
         self.link = link
         self.can_edit = int(can_edit)
+        self.creation_time = creation_time
 
     def __str__(self):
         return "Show id: {}, Episode: {}, Link: {}".format(
             self.media_id, self.number, self.link
         )
+
+    def to_markdown_en(self):
+        """Generate the markdown for placing an episode in a summary post table."""
+
+        return "| {show_name} | {show_name_en} | [Episode {episode}]({link}) |"
+
+    def to_markdown(self):
+        """Generate the markdown for placing an episode in a summary post table."""
+
+        return "| {show_name} |  | [Episode {episode}]({link}) |"
+
+    def to_markdown_movie_en(self):
+        """Generate the markdown for placing a movie in a summary post table."""
+
+        return "| {show_name} | {show_name_en} | [Movie]({link}) |"
+
+    def to_markdown_movie(self):
+        """Generate the markdown for placing a movie in a summary post table."""
+
+        return "| {show_name} |  | [Movie]({link}) |"
 
 
 class UpcomingEpisode:
@@ -218,3 +239,16 @@ class PrivateMessage:
         return "sender id: {}\nmessage_id: {}\nmessage_contents: {}".format(
             self.sender_id, self.message_id, self.message_contents
         )
+
+
+class SummaryPost:
+    """Class used to define a summary post"""
+
+    def __init__(
+        self, number, post_url, pinned=False, creation_time=None, last_update=None
+    ):
+        self.number = number
+        self.post_url = post_url
+        self.pinned = int(pinned)
+        self.creation_time = creation_time
+        self.last_update = last_update
