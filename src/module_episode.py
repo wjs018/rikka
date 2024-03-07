@@ -124,7 +124,7 @@ def main(config, db, *args, **kwargs):
             db, config, episode, ignore_engagement=manual_creation
         )
 
-        if handled:
+        if handled == True:
             debug("Successfully processed episode, editing posts")
             show = db.get_show(episode.media_id)
             show_episodes = db.get_episodes(show)
@@ -190,6 +190,8 @@ def main(config, db, *args, **kwargs):
                     config.submit,
                     image_url=image_url,
                 )
+        elif handled == "disabled":
+            info("Show marked as disabled, skipping episode.")
         else:
             error("Problem handling aired episode {}".format(episode))
 
@@ -411,7 +413,7 @@ def _handle_episode_post(db, config, episode, ignore_engagement=False):
         )
         db.add_ignored_episode(episode)
         db.remove_upcoming_episode(episode.media_id, episode.number)
-        return False
+        return "disabled"
 
     # Next, if this is a new show, make the post and return true
     if not most_recent:

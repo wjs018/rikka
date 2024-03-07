@@ -60,6 +60,7 @@ class Config:
         self.movie_title_with_en = None
         self.post_body = None
         self.movie_post_body = None
+        self.user_thread_comment = None
         self.post_formats = dict()
 
         # summary section
@@ -145,6 +146,7 @@ def from_file(file_path):
         config.movie_title_with_en = sec.get("movie_title_with_en", None)
         config.post_body = sec.get("post_body", None)
         config.movie_post_body = sec.get("movie_post_body", None)
+        config.user_thread_comment = sec.get("user_thread_comment", None)
         for key in sec:
             if key.startswith("format_") and len(key) > 7:
                 config.post_formats[key[7:]] = sec[key]

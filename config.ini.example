@@ -117,6 +117,22 @@ movie_post_body =
     *This post was created by a bot. Message the mod team for feedback and comments.*
     *The original source code can be found on [GitHub](https://github.com/wjs018/rikka).*
 
+user_thread_comment = 
+    *{show_name}* - episode {episode}
+
+    {links}
+
+    ---
+
+    **All discussions**
+
+    {discussions}
+
+    ---
+
+    *This post was created by a bot. Message the mod team for feedback and comments.*
+    *The original source code can be found on [GitHub](https://github.com/wjs018/rikka).*
+
 [summary]
 # Number of days to look backward to include recently created threads in summary posts
 # default of 8
