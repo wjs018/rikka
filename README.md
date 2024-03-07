@@ -260,6 +260,7 @@ The user_thread module is used to manually add user-created (non-editable) discu
 1. The url for the post
 2. The episode number (optional, see below)
 3. The AniList id for the show (optional, see below)
+4. Whether rikka should make a comment in the user thread with show information and discussion history
 
 Arguments 2 and 3 above are optional and can be inferred from the post information, but only if the post is formatted in a certain way. Specifically:
 
@@ -284,6 +285,12 @@ python src/rikka.py -m user_thread https://lemmy.instance.tld/post/1234 80
 
 ```bash
 python src/rikka.py -m user_thread https://lemmy.instance.tld/post/1234 80 457
+```
+
+If you want to have rikka create a comment in the thread with show information and discussion history, then all four arguments must be provided, with the fourth simply being the word comment.
+
+```bash
+python src/rikka.py -m user_thread https://lemmy.instance.tld/post/1234 80 457 comment
 ```
 
 ### The listen Module
