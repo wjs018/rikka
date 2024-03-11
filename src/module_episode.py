@@ -137,6 +137,9 @@ def main(config, db, *args, **kwargs):
 
                 for editing_episode in show_episodes[-edit_history_length:]:
                     if lemmy.is_comment_url(editing_episode.link):
+                        continue
+
+                    if not bool(editing_episode.can_edit):
                         user_thread = db.get_user_episode(show, editing_episode.number)
                         if not user_thread:
                             continue
@@ -146,9 +149,6 @@ def main(config, db, *args, **kwargs):
                             )
                             lemmy.edit_text_comment(user_thread.link, body)
                             continue
-
-                    if not bool(editing_episode.can_edit):
-                        continue
 
                     if config.submit_image == "banner":
                         banner_image = db.get_banner_image(editing_episode.media_id)
