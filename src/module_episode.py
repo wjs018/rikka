@@ -137,7 +137,15 @@ def main(config, db, *args, **kwargs):
 
                 for editing_episode in show_episodes[-edit_history_length:]:
                     if lemmy.is_comment_url(editing_episode.link):
-                        continue
+                        user_thread = db.get_user_episode(show, editing_episode.number)
+                        if not user_thread:
+                            continue
+                        else:
+                            body = _format_post_text(
+                                config, db, editing_episode, config.user_thread_comment
+                            )
+                            lemmy.edit_text_comment(user_thread.link, body)
+                            continue
 
                     if not bool(editing_episode.can_edit):
                         continue
