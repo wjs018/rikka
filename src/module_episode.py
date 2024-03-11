@@ -191,7 +191,7 @@ def main(config, db, *args, **kwargs):
                     image_url=image_url,
                 )
         elif handled == "disabled":
-            info("Show marked as disabled, skipping episode.")
+            debug("Show marked as disabled, skipping episode.")
         else:
             error("Problem handling aired episode {}".format(episode))
 

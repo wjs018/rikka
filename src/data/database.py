@@ -175,6 +175,18 @@ class DatabaseDatabase:
         )
 
         self.q.execute(
+            """CREATE TABLE IF NOT EXISTS UserEpisodes (
+            id              INTEGER NOT NULL,
+            episode         INTEGER NOT NULL,
+            post_url        text,
+            can_edit        INTEGER NOT NULL,
+            creation_time   INTEGER NOT NULL,
+            UNIQUE(id, episode) ON CONFLICT REPLACE,
+            FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
+        )"""
+        )
+
+        self.q.execute(
             """CREATE TABLE IF NOT EXISTS UpcomingEpisodes (
             id              INTEGER NOT NULL,
             episode         INTEGER NOT NULL,
@@ -645,6 +657,66 @@ class DatabaseDatabase:
         for data in self.q.fetchall():
             episodes.append(Episode(*data))
 
+        return episodes
+
+    @db_error
+    def add_user_episode(
+        self, media_id, episode_num, post_url=None, can_edit=True, creation_time=None
+    ):
+        """Adds a user created episode to the UserEpisodes table"""
+
+        show = self.get_show(media_id)
+
+        debug(
+            "Inserting user episode {} for show {}, link: {}".format(
+                episode_num, show.id, post_url
+            )
+        )
+
+        if not creation_time:
+            creation_time = int(time.time())
+
+        self.q.execute(
+            "INSERT INTO UserEpisodes (id, episode, post_url, can_edit, creation_time) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (show.id, episode_num, post_url, int(can_edit), creation_time),
+        )
+        self._db.commit()
+
+    @db_error_default(Episode)
+    def get_user_episode(self, show: Show, episode: int) -> Optional[Episode]:
+        """Get a specific episode for the given show and episode number"""
+
+        debug("Fetching episode {} for show {}".format(episode, show.name))
+
+        self.q.execute(
+            "SELECT episode, post_url, can_edit, creation_time FROM UserEpisodes WHERE "
+            "id = ? AND episode = ? LIMIT 1",
+            (show.id, episode),
+        )
+
+        data = self.q.fetchone()
+        if data is not None:
+            return Episode(show.id, *data)
+        return None
+
+    @db_error_default(list())
+    def get_user_episodes(self, show, ensure_sorted=True) -> List[Episode]:
+        """Get a list of episodes for a given Show object."""
+
+        debug("Fetching user episodes for {}".format(show.name))
+
+        episodes = list()
+        self.q.execute(
+            "SELECT episode, post_url, can_edit, creation_time FROM UserEpisodes WHERE "
+            "id = ?",
+            (show.id,),
+        )
+        for data in self.q.fetchall():
+            episodes.append(Episode(show.id, *data))
+
+        if ensure_sorted:
+            episodes = sorted(episodes, key=lambda e: e.number)
         return episodes
 
     @db_error

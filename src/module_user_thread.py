@@ -89,9 +89,22 @@ def main(config, db, *args, **kwargs):
 
         if handled:
             info("Comment successfully created")
+            link = handled["ap_id"]
+            db.add_user_episode(anilist_id, episode_number, link)
         else:
             error("Problem creating comment")
             raise Exception("Problem creating comment in thread")
+
+    user_show = db.get_show(id=anilist_id)
+    user_comments = db.get_user_episodes(user_show)
+
+    for comment in user_comments:
+        comment_body = _format_post_text(
+            config, db, comment, config.user_thread_comment
+        )
+        response = lemmy.edit_text_comment(comment.link, comment_body)
+        if not response:
+            error("Problem editing user episode {}".format(comment))
 
 
 def _create_user_thread_comment(db, config, post_url, anilist_id, episode_number):
@@ -111,14 +124,3 @@ def _create_user_thread_comment(db, config, post_url, anilist_id, episode_number
         return response
 
     return None
-
-
-# def _create_comment_contents(config, db, episode):
-#     """Create the content of the comment"""
-
-#     formats = config.post_formats
-
-#     # Get the show
-#     show = db.get_show(episode.media_id)
-
-#     # body = safe_format(config.user_thread_comment, )

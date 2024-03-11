@@ -108,6 +108,20 @@ def submit_text_comment(parent_post_url, body):
         return None
 
 
+def edit_text_comment(url, body):
+    """Edit a comment"""
+
+    _ensure_connection()
+    comment_id = _get_post_id_from_shortlink(url)
+    try:
+        info("Editing comment at {}".format(url))
+        response = _l.comment.edit(comment_id=comment_id, content=body)
+        return _extract_comment_response(response)
+    except:
+        error("Failed to edit comment")
+        return None
+
+
 def is_post_url(url):
     """Returns True if the given url is a post url (as opposed to a comment url)."""
 
