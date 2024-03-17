@@ -107,6 +107,18 @@ You can also disable all shows marked as nsfw according to AniList's api with on
 python src/rikka.py -m disable nsfw
 ```
 
+Another way to use the disable module is to simply disable all shows in the database by providing the `all` argument.
+
+```bash
+python src/rikka.py -m disable all
+```
+
+Finally, the last way to use the disable module is to disable shows that have finished airing by providing the `finished` argument.
+
+```bash
+python src/rikka.py -m disable finished
+```
+
 ---
 
 ### The `enable` Module

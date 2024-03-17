@@ -44,7 +44,7 @@ query ($page: Int, $id_in: [Int]) {
 
 
 def add_update_shows_by_id(
-    db, show_ids, ratelimit=60, enabled=True, ignore_enabled=False
+    db, show_ids, ratelimit=60, enabled=True, ignore_enabled=False, get_raw_shows=False
 ):
     """
     Either adds shows in the given id list if it isn't already in the database, or
@@ -84,6 +84,9 @@ def add_update_shows_by_id(
             break
 
         page += 1
+
+    if get_raw_shows:
+        return raw_shows
 
     for raw_show in raw_shows:
         db_show = check_if_exists(db, raw_show.media_id)
