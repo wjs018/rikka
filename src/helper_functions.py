@@ -70,7 +70,7 @@ def add_update_shows_by_id(
 
             retries[page] = retries.get(page, 0) + 1
 
-            if retries[page] >= 3:
+            if retries[page] >= 5:
                 debug(
                     "Retried {} times. Skipping and proceeding.".format(retries[page])
                 )
@@ -162,6 +162,10 @@ def _get_shows_info(page, show_ids, ratelimit=60):
             json={"query": paged_show_query, "variables": variables},
             timeout=5.0,
         )
+        response_test = response.json()
+        if "data" not in response_test:
+            error("Bad response from request for airing times")
+            return "bad response"
     except:
         error("Bad response from request for airing times")
         return "bad response"
