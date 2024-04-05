@@ -64,6 +64,7 @@ def main(config, db, *args, **kwargs):
                     if not raw_show.is_airing:
                         selected_show = db.get_show(id=raw_show.media_id)
                         db.set_show_enabled(selected_show, enabled=False, commit=True)
+                        disabled_shows += 1
 
             info("Disabled {} shows found in the database".format(disabled_shows))
 
