@@ -104,11 +104,10 @@ def _handle_message(db, config, message):
     found_episode = db.get_episode(selected_show, episode_number)
 
     if found_episode:
-        error_message += (
-            "Found existing discussion thread at {}".format(found_episode.link)
-            + message_ending
+        error_message = "Found existing discussion thread at {}".format(
+            found_episode.link
         )
-        error("Found existing discussion thread at {}".format(found_episode.link))
+        info("Found existing discussion thread at {}".format(found_episode.link))
         return False
 
     debug("Checking for a more recent episode for the show")
