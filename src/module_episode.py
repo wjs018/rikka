@@ -218,6 +218,7 @@ def _add_update_upcoming_episodes(db, config):
     # Initialize things to prep for api calls
     ratelimit = config.ratelimit
     days = config.days
+    delay = config.delay
 
     found_episodes = []
     found_shows = []
@@ -232,7 +233,9 @@ def _add_update_upcoming_episodes(db, config):
 
     # Make the api calls, allowing up to three retries
     while True:
-        response = _get_airing_schedule(page, start, end, ratelimit=ratelimit)
+        response = _get_airing_schedule(
+            page, start, end, ratelimit=ratelimit, delay=delay
+        )
 
         if response == "bad response":
             debug(
@@ -298,7 +301,7 @@ def _add_update_upcoming_episodes(db, config):
     return [new_episodes, new_shows]
 
 
-def _get_airing_schedule(page, start, end, ratelimit=60):
+def _get_airing_schedule(page, start, end, ratelimit=60, delay=60):
     """
     Queries the AniList api for episodes airing between the start and end times given.
     Also need to specify the page of results to return (up to 25 results per page)
@@ -373,7 +376,7 @@ def _get_airing_schedule(page, start, end, ratelimit=60):
         air_time = episode["airingAt"]
 
         if episode["media"]["duration"]:
-            air_time += 60 * episode["media"]["duration"]
+            air_time += 60 * delay
 
         found_episodes.append(UpcomingEpisode(media_id, episode_num, air_time))
 

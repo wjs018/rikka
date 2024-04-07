@@ -58,6 +58,7 @@ class Config:
         self.post_title_with_en = None
         self.movie_title = None
         self.movie_title_with_en = None
+        self.delay = None
         self.post_body = None
         self.movie_post_body = None
         self.user_thread_comment = None
@@ -144,6 +145,7 @@ def from_file(file_path):
         config.post_title_with_en = sec.get("title_with_en", None)
         config.movie_title = sec.get("movie_title", None)
         config.movie_title_with_en = sec.get("movie_title_with_en", None)
+        config.delay = sec.getint("delay", 60)
         config.post_body = sec.get("post_body", None)
         config.movie_post_body = sec.get("movie_post_body", None)
         config.user_thread_comment = sec.get("user_thread_comment", None)

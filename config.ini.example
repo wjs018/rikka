@@ -61,6 +61,9 @@ title_with_en = {show_name} • {show_name_en} - Episode {episode} discussion
 movie_title = {show_name} - Movie Discussion
 movie_title_with_en = {show_name} • {show_name_en} - Movie Discussion
 
+# Number of minutes to delay making a post after the episode start time (default of 60)
+delay = 60
+
 format_spoiler =
     ---
     **Reminder:** Please do not discuss plot points not yet seen or skipped in the show. Failing to follow the rules may result in a ban.
