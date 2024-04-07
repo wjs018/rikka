@@ -129,6 +129,12 @@ It is also possible to re-enable a show in a similar fashion to the disable modu
 python src/rikka.py -m enable 457
 ```
 
+Also, it is possible to enable all shows in the database by omitting the show id.
+
+```bash
+python src/rikka.py -m enable
+```
+
 ---
 
 ### The `remove` Module
