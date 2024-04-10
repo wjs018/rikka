@@ -416,18 +416,19 @@ def _handle_episode_post(db, config, episode, ignore_engagement=False):
     most_recent = db.get_latest_episode(show)
 
     # Check if the episode (or a more recent episode) already exists
-    #if most_recent.number >= episode.number:
-        # Episode thread shouldn't be created unless being manually created
-        #if ignore_engagement:
-            # Create thread
-            #info("Manual thread creation, ignoring more recent threads")
-            #created_post = _create_standalone_post(db, config, episode)
-            #if created_post:
-                #return True
-            #return False
+    if most_recent:
+        if most_recent.number >= episode.number:
+            # Episode thread shouldn't be created unless being manually created
+            if ignore_engagement:
+                # Create thread because it is being manually created
+                info("Manual thread creation, ignoring more recent threads")
+                created_post = _create_standalone_post(db, config, episode)
+                if created_post:
+                    return True
+                return False
 
-        #error("Current or more recent episode already exists")
-        #return False
+            error("Current or more recent episode already exists")
+            return False
 
     # Check if the show is disabled. If so, create the ignored episode
     if episode.media_id in disabled_show_ids:
