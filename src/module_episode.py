@@ -364,6 +364,9 @@ def _get_airing_schedule(page, start, end, ratelimit=60, delay=60):
     except KeyError:
         error("Bad response from AniList api from request for airing times")
         return "bad response"
+    except TypeError:
+        error("Persistent bad api responses, skipping updating upcoming episodes")
+        return None
 
     found_episodes_resp = response["data"]["Page"]["airingSchedules"]
 
