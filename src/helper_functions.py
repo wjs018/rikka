@@ -180,7 +180,11 @@ def _get_shows_info(page, show_ids, ratelimit=60):
         error("Persistent bad api responses, skipping updating upcoming episodes")
         return None
 
-    has_next_page = response["data"]["Page"]["pageInfo"]["hasNextPage"]
+    try:
+        has_next_page = response["data"]["Page"]["pageInfo"]["hasNextPage"]
+    except TypeError:
+        error("Persistent bad api responses, skipping updating upcoming episodes")
+        return None
 
     found_shows_resp = response["data"]["Page"]["media"]
 
