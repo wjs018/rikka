@@ -4,6 +4,7 @@ import time
 import requests
 
 from logging import debug, info, error
+from requests.exceptions import JSONDecodeError
 from data.models import UnprocessedShow, ExternalLink, Image, str_to_showtype
 from config import min_ns, api_call_times
 
@@ -60,6 +61,9 @@ def add_update_shows_by_id(
 
     while True:
         response = _get_shows_info(page, show_ids, ratelimit)
+
+        if response == None:
+            break
 
         if response == "bad response":
             debug(
@@ -170,7 +174,12 @@ def _get_shows_info(page, show_ids, ratelimit=60):
         error("Bad response from request for airing times")
         return "bad response"
 
-    response = response.json()
+    try:
+        response = response.json()
+    except JSONDecodeError:
+        error("Persistent bad api responses, skipping updating upcoming episodes")
+        return None
+
     has_next_page = response["data"]["Page"]["pageInfo"]["hasNextPage"]
 
     found_shows_resp = response["data"]["Page"]["media"]
