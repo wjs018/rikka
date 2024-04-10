@@ -238,6 +238,9 @@ def _add_update_upcoming_episodes(db, config):
             page, start, end, ratelimit=ratelimit, delay=delay
         )
 
+        if response == None:
+            break
+
         if response == "bad response":
             debug(
                 "Bad response when getting upcoming episodes. Tried {} times".format(
