@@ -5,6 +5,7 @@ import requests
 
 from logging import debug, info, error
 from datetime import datetime, timezone
+from requests.exceptions import JSONDecodeError
 
 import lemmy
 from config import min_ns, api_call_times
@@ -357,7 +358,11 @@ def _get_airing_schedule(page, start, end, ratelimit=60, delay=60):
         error("Bad response from request for airing times")
         return "bad response"
 
-    response = response.json()
+    try:
+        response = response.json()
+    except JSONDecodeError:
+        error("Persistent bad api responses, skipping updating upcoming episodes")
+        return None
 
     try:
         has_next_page = response["data"]["Page"]["pageInfo"]["hasNextPage"]
