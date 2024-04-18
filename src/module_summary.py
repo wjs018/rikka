@@ -2,7 +2,6 @@
 
 import time
 import operator
-import collections
 
 from logging import debug, info, error
 
@@ -158,7 +157,8 @@ def _create_post_contents(config, db):
 
     if config.alphabetize:
 
-        sorted_episodes = collections.deque()
+        en_episodes = []
+        jp_episodes = []
 
         for episode in recent_episodes:
             show = db.get_show(episode.media_id)
@@ -169,11 +169,11 @@ def _create_post_contents(config, db):
 
         for episode in recent_episodes:
             if not episode.name_en:
-                sorted_episodes.append(episode)
+                jp_episodes.append(episode)
             else:
-                sorted_episodes.appendleft(episode)
+                en_episodes.append(episode)
 
-        recent_episodes = list(sorted_episodes)
+        recent_episodes = en_episodes + jp_episodes
 
     body = safe_format(
         config.summary_body,
