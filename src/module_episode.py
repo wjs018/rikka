@@ -428,7 +428,7 @@ def _handle_episode_post(db, config, episode, ignore_engagement=False):
 
     # Check if the episode (or a more recent episode) already exists
     if most_recent:
-        if most_recent.number >= episode.number:
+        if int(most_recent.number) >= int(episode.number):
             # Episode thread shouldn't be created unless being manually created
             if ignore_engagement:
                 # Create thread because it is being manually created

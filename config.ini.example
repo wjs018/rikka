@@ -143,6 +143,8 @@ summary_days = 8
 # Should the summary post be pinned to the community (requires being a moderator)
 # default of false
 pin_summary = true
+# Sort the list alphabetically? Default is false, sorts post reverse chronologically
+alphabetize = false
 
 summary_title = Latest Episode Discussion Threads Index
 

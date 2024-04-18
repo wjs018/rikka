@@ -69,6 +69,7 @@ class Config:
         self.pin_summary = False
         self.summary_title = None
         self.summary_body = None
+        self.alphabetize = None
 
         # megathread section
         self.megathread_episodes = None
@@ -159,6 +160,7 @@ def from_file(file_path):
         config.pin_summary = sec.getboolean("pin_summary", False)
         config.summary_title = sec.get("summary_title", None)
         config.summary_body = sec.get("summary_body", None)
+        config.alphabetize = sec.getboolean("alphabetize", False)
 
     if "megathread" in parsed:
         sec = parsed["megathread"]

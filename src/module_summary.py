@@ -1,6 +1,8 @@
 """Module to create and update summary posts."""
 
 import time
+import operator
+import collections
 
 from logging import debug, info, error
 
@@ -153,6 +155,25 @@ def _create_post_contents(config, db):
     title = config.summary_title
 
     recent_episodes = db.get_latest_episodes()
+
+    if config.alphabetize:
+
+        sorted_episodes = collections.deque()
+
+        for episode in recent_episodes:
+            show = db.get_show(episode.media_id)
+            episode.name = show.name
+            episode.name_en = show.name_en
+
+        recent_episodes.sort(key=operator.attrgetter("name_en", "name"))
+
+        for episode in recent_episodes:
+            if not episode.name_en:
+                sorted_episodes.append(episode)
+            else:
+                sorted_episodes.appendleft(episode)
+
+        recent_episodes = list(sorted_episodes)
 
     body = safe_format(
         config.summary_body,
