@@ -52,6 +52,7 @@ class Config:
         self.l_instance = None
         self.l_username = None
         self.l_password = None
+        self.l_language_id = None
 
         # post section
         self.post_title = None
@@ -103,6 +104,7 @@ def from_file(file_path):
         config.l_instance = sec.get("instance", None)
         config.l_username = sec.get("username", None)
         config.l_password = sec.get("password", None)
+        config.l_language_id = sec.getint("language_id", None)
 
     if "options" in parsed:
         sec = parsed["options"]

@@ -70,7 +70,16 @@ def submit_text_post(community, title, body, nsfw, url=None):
     community_id = _l.discover_community(community)
     if not community_id:
         exception(f"Community {community} not found")
-    response = _l.post.create(community_id, title, body=body, nsfw=nsfw, url=url)
+
+    global _config
+    if _config.l_language_id is not None:
+        language_id = _config.l_language_id
+    else:
+        language_id = None
+
+    response = _l.post.create(
+        community_id, title, body=body, nsfw=nsfw, url=url, language_id=language_id
+    )
     return _extract_post_response(response)
 
 
@@ -85,9 +94,17 @@ def edit_text_post(url, body, link_url=None, overwrite_url=True):
         except KeyError:
             link_url = None
 
+    global _config
+    if _config.l_language_id is not None:
+        language_id = _config.l_language_id
+    else:
+        language_id = None
+
     try:
         info(f"Editing post {url}")
-        response = _l.post.edit(post_id, body=body, url=link_url)
+        response = _l.post.edit(
+            post_id, body=body, url=link_url, language_id=language_id
+        )
         return _extract_post_response(response)
     except:
         exception("Failed to submit text post")
@@ -99,9 +116,16 @@ def submit_text_comment(parent_post_url, body):
 
     _ensure_connection()
     post_id = _get_post_id_from_shortlink(parent_post_url)
+
+    global _config
+    if _config.l_language_id is not None:
+        language_id = _config.l_language_id
+    else:
+        language_id = None
+
     try:
         info("Submitting comment to post at {}".format(parent_post_url))
-        response = _l.comment.create(post_id, body)
+        response = _l.comment.create(post_id, body, language_id=language_id)
         return _extract_comment_response(response)
     except:
         error("Failed to create comment")
@@ -113,9 +137,18 @@ def edit_text_comment(url, body):
 
     _ensure_connection()
     comment_id = _get_post_id_from_shortlink(url)
+
+    global _config
+    if _config.l_language_id is not None:
+        language_id = _config.l_language_id
+    else:
+        language_id = None
+
     try:
         info("Editing comment at {}".format(url))
-        response = _l.comment.edit(comment_id=comment_id, content=body)
+        response = _l.comment.edit(
+            comment_id=comment_id, content=body, language_id=language_id
+        )
         return _extract_comment_response(response)
     except:
         error("Failed to edit comment")
