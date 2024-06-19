@@ -8,7 +8,7 @@ from logging import info, error, debug
 import lemmy
 from data.models import UpcomingEpisode
 from helper_functions import add_update_shows_by_id
-from module_episode import _format_post_text
+from module_episode import _format_post_text, _edit_post
 
 
 def main(config, db, *args, **kwargs):
@@ -105,6 +105,36 @@ def main(config, db, *args, **kwargs):
         response = lemmy.edit_text_comment(comment.link, comment_body)
         if not response:
             error("Problem editing user episode {}".format(comment))
+
+    db_show = db.get_show(id=anilist_id)
+    episodes = db.get_episodes(db_show)
+
+    for episode in episodes:
+        if episode.can_edit:
+
+            if config.submit_image == "banner":
+                banner_image = db.get_banner_image(episode.media_id)
+                if banner_image:
+                    image_url = banner_image.image_link
+                else:
+                    image_url = None
+            elif config.submit_image == "cover":
+                cover_image = db.get_cover_image(episode.media_id)
+                if cover_image:
+                    image_url = cover_image.image_link
+                else:
+                    image_url = None
+            else:
+                image_url = None
+
+            _edit_post(
+                config,
+                db,
+                episode,
+                episode.link,
+                config.submit,
+                image_url=image_url,
+            )
 
 
 def _create_user_thread_comment(db, config, post_url, anilist_id, episode_number):
