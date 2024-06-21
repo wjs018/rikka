@@ -163,17 +163,21 @@ def _create_post_contents(config, db):
         for episode in recent_episodes:
             show = db.get_show(episode.media_id)
             episode.name = show.name
-            episode.name_en = show.name_en
+
+            if not show.name_en:
+                episode.name_en = show.name
+            else:
+                episode.name_en = show.name_en
 
         recent_episodes.sort(key=operator.attrgetter("name_en", "name"))
 
-        for episode in recent_episodes:
-            if not episode.name_en:
-                jp_episodes.append(episode)
-            else:
-                en_episodes.append(episode)
+        # for episode in recent_episodes:
+        #     if not episode.name_en:
+        #         jp_episodes.append(episode)
+        #     else:
+        #         en_episodes.append(episode)
 
-        recent_episodes = en_episodes + jp_episodes
+        # recent_episodes = en_episodes + jp_episodes
 
     body = safe_format(
         config.summary_body,
@@ -194,27 +198,32 @@ def _gen_text_latest_episodes(config, db, episodes):
 
         show = db.get_show(episode.media_id)
 
-        if show.name_en:
-            has_en = True
+        # if show.name_en:
+        #     has_en = True
 
         if show.type == ShowType.MOVIE.value:
             is_movie = True
 
-        if has_en:
-            if is_movie:
-                ep_markdown = episode.to_markdown_movie_en()
-            else:
-                ep_markdown = episode.to_markdown_en()
+        if is_movie:
+            ep_markdown = episode.to_markdown_movie_en()
         else:
-            if is_movie:
-                ep_markdown = episode.to_markdown_movie()
-            else:
-                ep_markdown = episode.to_markdown()
+            ep_markdown = episode.to_markdown_en()
+
+        # if has_en:
+        #     if is_movie:
+        #         ep_markdown = episode.to_markdown_movie_en()
+        #     else:
+        #         ep_markdown = episode.to_markdown_en()
+        # else:
+        #     if is_movie:
+        #         ep_markdown = episode.to_markdown_movie()
+        #     else:
+        #         ep_markdown = episode.to_markdown()
 
         formatted = safe_format(
             ep_markdown,
-            show_name=show.name,
-            show_name_en=show.name_en,
+            show_name=episode.name,
+            show_name_en=episode.name_en,
             episode=episode.number,
             link=episode.link,
         )
