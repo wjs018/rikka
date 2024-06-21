@@ -23,6 +23,7 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
   - [user_thread](https://github.com/wjs018/rikka?tab=readme-ov-file#the-user_thread-module)
   - [listen](https://github.com/wjs018/rikka?tab=readme-ov-file#the-listen-module)
   - [summary](https://github.com/wjs018/rikka?tab=readme-ov-file#the-summary-module)
+  - [requestable](https://github.com/wjs018/rikka?tab=readme-ov-file#the-requestable-module)
 - [First Time Setup and Usage](https://github.com/wjs018/rikka?tab=readme-ov-file#first-time-setup-and-usage)
 - [Automating Rikka](https://github.com/wjs018/rikka?tab=readme-ov-file#automating-rikka)
 
@@ -35,6 +36,7 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
 - `requests`
 - `pyyaml`
 - `python-dateutil`
+- `jinja2`
 - `pythorhead` >= 0.20.0
 
 ## Design notes
@@ -343,6 +345,26 @@ Alternatively, to simply update the most recently created summary post, run with
 ```bash
 python src/rikka.py -m summary update
 ```
+
+### The requestable Module
+
+This module does not directly post anything to lemmy or modify the database in any way. Instead, it is used to create a formatted markdown document summarizing the status of several groups of shows in the rikka's database. There are three groups of shows that are summarized in the document:
+
+1. Currently Enabled Shows - any show marked enabled in the database is listed in this table with a link to the most recent discussion post (if it exists)
+2. Requestable Shows - these are shows that have had recently aired episodes but they were ignored for whatever reason (lack of engagement or marked as disabled). This is the list of shows that are eligible for threads to be created with the `listen` module. The most recently aired episode is listed as well.
+3. Upcoming Shows - these shows are not marked as enabled and also don't have a recently aired episode. The table also includes the premiere time (in UTC) for the next airing episode
+
+The purpose of this module is to make a nicely formatted markdown document that can then be used to keep something like a wiki up to date automatically. The scripting to handle moving the saved file into the proper destination and do any wiki management is out of scope for rikka. Personally, I use bash scripting to automate wiki updates from this module by taking the output file from this module and appending it onto a file in the wiki directory that is managed with git.
+
+To configure this module, there are two parameters to set in the `[requestable]` section of the config file. The first is `template_file` which points to the jinja template file to use. I have provided a template file in this repository named `requestable_template.md`. The second parameter to set is the `output_filename` to use for the new markdown file to be created with the formatted output. By default, this will be `requestable.md`.
+
+To run this module, there are no cli parameters as it is configured via the config file. So, it is simply:
+
+```bash
+python src/rikka.py -m requestable
+```
+
+This will use the template file to create the output file that reflects the current state of rikka's database. This output file can then be used in whatever way you want via additional, external scripting.
 
 ## First Time Setup and Usage
 

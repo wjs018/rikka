@@ -72,6 +72,10 @@ class Config:
         self.summary_body = None
         self.alphabetize = None
 
+        # requestable section
+        self.template_file = None
+        self.output_filename = None
+
         # megathread section
         self.megathread_episodes = None
         self.megathread_title = None
@@ -163,6 +167,11 @@ def from_file(file_path):
         config.summary_title = sec.get("summary_title", None)
         config.summary_body = sec.get("summary_body", None)
         config.alphabetize = sec.getboolean("alphabetize", False)
+
+    if "requestable" in parsed:
+        sec = parsed["requestable"]
+        config.template_file = sec.get("template_file", None)
+        config.output_filename = sec.get("output_filename", "requestable.md")
 
     if "megathread" in parsed:
         sec = parsed["megathread"]

@@ -758,6 +758,40 @@ class DatabaseDatabase:
 
         return upcoming
 
+    @db_error_default(UpcomingEpisode)
+    def get_next_episode(self, media_id):
+        """
+        Return the next UpcomingEpisode object in time for the given show id.
+        """
+
+        self.q.execute(
+            "SELECT id, episode, airing_time FROM UpcomingEpisodes "
+            "WHERE id = ? ORDER BY airing_time ASC",
+            (media_id,),
+        )
+
+        data = self.q.fetchone()
+        if data is not None:
+            return UpcomingEpisode(*data)
+        else:
+            return None
+
+    @db_error_default(list())
+    def get_upcoming_shows(self) -> Optional[List[Show]]:
+
+        show_ids = []
+        shows = []
+
+        self.q.execute("SELECT DISTINCT id FROM UpcomingEpisodes")
+
+        for row in self.q.fetchall():
+            show_ids.append(row[0])
+
+        for media_id in show_ids:
+            shows.append(self.get_show(media_id))
+
+        return shows
+
     @db_error
     def remove_upcoming_episode(self, media_id, episode_num):
         """Remove an upcoming episode from the UpcomingEpisodes table."""
@@ -808,6 +842,38 @@ class DatabaseDatabase:
         if data is not None:
             return UpcomingEpisode(media_id, episode, data[2])
         return None
+
+    @db_error_default(UpcomingEpisode)
+    def get_most_recent_ignored(self, media_id: int) -> Optional[UpcomingEpisode]:
+        """Get the most recently aired but ignored episode for a given show."""
+
+        self.q.execute(
+            "SELECT id, episode, airing_time FROM IgnoredEpisodes "
+            "WHERE id = ? ORDER BY airing_time DESC",
+            (media_id,),
+        )
+
+        data = self.q.fetchone()
+        if data is not None:
+            return UpcomingEpisode(*data)
+        else:
+            return None
+
+    @db_error_default(list())
+    def get_ignored_shows(self) -> Optional[List[Show]]:
+
+        show_ids = []
+        shows = []
+
+        self.q.execute("SELECT DISTINCT id FROM IgnoredEpisodes")
+
+        for row in self.q.fetchall():
+            show_ids.append(row[0])
+
+        for media_id in show_ids:
+            shows.append(self.get_show(media_id))
+
+        return shows
 
     @db_error
     def remove_ignored_episode(self, media_id: int, episode: int):

@@ -164,6 +164,10 @@ summary_body =
     *This post was created by a bot. Message the mod team for feedback and comments.*
     *The original source code can be found on [GitHub](https://github.com/wjs018/rikka).*
 
+[requestable]
+template_file = requestable_template.md
+output_filename = requestable.md
+
 [megathread]
 # Maximum number of episodes to include in one megathread before creating a new one
 megathread_episodes = 12

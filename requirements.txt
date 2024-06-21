@@ -5,4 +5,5 @@ unidecode
 requests
 pyyaml
 python-dateutil
+jinja2
 pythorhead>=0.20.0
