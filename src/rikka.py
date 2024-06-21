@@ -16,7 +16,7 @@ from data import database
 # Metadata
 name = "Rikka"
 description = "episode discussion bot"
-version = "0.7.1"
+version = "0.7.4"
 
 
 def main(config, args, extra_args):
@@ -106,6 +106,15 @@ def main(config, args, extra_args):
 
             m.main(config, db, *extra_args)
 
+        elif config.module == "requestable":
+            debug(
+                "Outputting a formatted list of enabled,"
+                " requestable, and upcoming shows"
+            )
+            import module_requestable as m  # pylint: disable=import-outside-toplevel
+
+            m.main(config, db, *extra_args)
+
     except:
         exception("Unknown exception or error")
         db._db.rollback()
@@ -141,6 +150,7 @@ if __name__ == "__main__":
             "user_thread",
             "listen",
             "summary",
+            "requestable",
         ],
         default=["episode"],
         help="runs the specified module",
