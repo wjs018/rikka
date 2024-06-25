@@ -92,7 +92,9 @@ def main(config, db, *args, **kwargs):
 
     info("{} shows found meeting criteria for the season".format(len(found_shows)))
 
-    shows_added = add_update_shows_by_id(db, show_ids=found_shows, ratelimit=ratelimit)
+    shows_added = add_update_shows_by_id(
+        db, enabled=config.discovery_enabled, show_ids=found_shows, ratelimit=ratelimit
+    )
 
     info("{} shows added to the database".format(shows_added))
 

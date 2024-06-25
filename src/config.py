@@ -76,6 +76,12 @@ class Config:
         self.template_file = None
         self.output_filename = None
 
+        # wiki section
+        self.wiki_template = None
+        self.wiki_folder = None
+        self.wiki_show_heading = None
+        self.wiki_show_heading_with_en = None
+
         # megathread section
         self.megathread_episodes = None
         self.megathread_title = None
@@ -172,6 +178,13 @@ def from_file(file_path):
         sec = parsed["requestable"]
         config.template_file = sec.get("template_file", None)
         config.output_filename = sec.get("output_filename", "requestable.md")
+
+    if "wiki" in parsed:
+        sec = parsed["wiki"]
+        config.wiki_template = sec.get("wiki_template", "season_template.md")
+        config.wiki_folder = sec.get("wiki_folder", "wiki")
+        config.wiki_show_heading = sec.get("wiki_show_heading", None)
+        config.wiki_show_heading_with_en = sec.get("wiki_show_heading_with_en", None)
 
     if "megathread" in parsed:
         sec = parsed["megathread"]

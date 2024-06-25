@@ -168,6 +168,12 @@ summary_body =
 template_file = requestable_template.md
 output_filename = requestable.md
 
+[wiki]
+wiki_template = season_template.md
+wiki_folder = wiki
+wiki_show_heading = {show_name}
+wiki_show_heading_with_en = {show_name} • {show_name_en}
+
 [megathread]
 # Maximum number of episodes to include in one megathread before creating a new one
 megathread_episodes = 12

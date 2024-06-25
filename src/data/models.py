@@ -146,6 +146,8 @@ class UnprocessedShow:
         is_airing,
         external_links,
         images,
+        season,
+        year,
     ):
         self.media_id = media_id
         self.id_mal = id_mal
@@ -158,6 +160,8 @@ class UnprocessedShow:
         self.is_airing = is_airing
         self.external_links = external_links
         self.images = images
+        self.season = season
+        self.year = year
 
     def __eq__(self, other):
         return self.media_id == other.media_id
