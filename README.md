@@ -24,6 +24,7 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
   - [listen](https://github.com/wjs018/rikka?tab=readme-ov-file#the-listen-module)
   - [summary](https://github.com/wjs018/rikka?tab=readme-ov-file#the-summary-module)
   - [requestable](https://github.com/wjs018/rikka?tab=readme-ov-file#the-requestable-module)
+  - [wiki](https://github.com/wjs018/rikka?tab=readme-ov-file#the-wiki-module)
 - [First Time Setup and Usage](https://github.com/wjs018/rikka?tab=readme-ov-file#first-time-setup-and-usage)
 - [Automating Rikka](https://github.com/wjs018/rikka?tab=readme-ov-file#automating-rikka)
 
@@ -365,6 +366,40 @@ python src/rikka.py -m requestable
 ```
 
 This will use the template file to create the output file that reflects the current state of rikka's database. This output file can then be used in whatever way you want via additional, external scripting.
+
+### The wiki Module
+
+This module is designed to create a formatted markdown page for each season that has shows that rikka has created discussion threads for. Similar to the `requestable` module, these files are intended to then be hooked into other scripts to do with what you want. An example of how they can be used (and how I use them) is to create these formatted markdown files whenever a new episode thread is created, then via bash scripting, copying them over to a wiki.js git directory, committing the changes and updating the wiki automatically.
+
+The template file used for this module can be specified in the config file as `wiki_template` in the `[wiki]` section. The subfolder to output the files to (organized by year) can be specified with the `wiki_folder` parameter. Additionally, the show section headings can be specified in this section (see the example config file for reference). To generate all the output files, you can simply run the module with no arguments:
+
+```bash
+python src/rikka.py -m wiki
+```
+
+There are some additional ways to use this module to make managing things easier. To mark that a show should not be included in the output, you can use arguments to specify the AniList id:
+
+```bash
+python src/rikka.py -m wiki disable 457
+```
+
+Alternatively, to re-enable the show for inclusion in the output files, use the `enable` argument with the AniList id:
+
+```bash
+python src/rikka.py -m wiki enable 457
+```
+
+Finally, it is possible to perform bulk actions on all the shows within a given season (as specified by AniList). To do so, instead of specifying an AniList id, simply provide the season name and year:
+
+```bash
+python src/rikka.py -m wiki disable Winter 2024
+```
+
+Or, to re-enable the shows in the season:
+
+```bash
+python src/rikka.py -m wiki enable Winter 2024
+```
 
 ## First Time Setup and Usage
 
