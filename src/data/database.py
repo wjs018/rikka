@@ -413,6 +413,11 @@ class DatabaseDatabase:
 
         if commit:
             self._db.commit()
+
+        season = raw_show.season
+        year = raw_show.year
+        self.add_season_year(media_id=id, season=season, year=year)
+
         return id
 
     @db_error
@@ -482,10 +487,16 @@ class DatabaseDatabase:
             (show_type, has_source, is_nsfw, enabled, show_id),
         )
 
-        self.update_single_has_episodes(media_id=show_id)
-
         if commit:
             self._db.commit()
+
+        self.add_season_year(
+            media_id=show_id,
+            season=raw_show.season,
+            year=raw_show.year,
+            ignore_tracking=True,
+        )
+        self.update_single_has_episodes(media_id=show_id)
 
     @db_error
     def set_show_enabled(self, show: Show, enabled=True, commit=True):
@@ -574,16 +585,47 @@ class DatabaseDatabase:
 
     @db_error
     def add_season_year(
-        self, media_id, season, year, track=True, has_episodes=False, updated=False
+        self,
+        media_id,
+        season,
+        year,
+        track=True,
+        has_episodes=False,
+        updated=False,
+        ignore_tracking=False,
     ):
         """Add the season and year to the Seasons table"""
 
-        self.q.execute(
-            "INSERT INTO Seasons (id, season, year, track, has_episodes, updated) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
-            (media_id, season, year, int(track), int(has_episodes), int(updated)),
-        )
+        track_status = self.get_track_status(media_id=media_id)
+        if track_status is None:
+            track_status = int(track)
+
+        if not ignore_tracking:
+            self.q.execute(
+                "INSERT INTO Seasons (id, season, year, track, has_episodes, updated) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (media_id, season, year, int(track), int(has_episodes), int(updated)),
+            )
+        else:
+            self.q.execute(
+                "INSERT INTO Seasons (id, season, year, track, has_episodes, updated) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (media_id, season, year, track_status, int(has_episodes), int(updated)),
+            )
+
         self._db.commit()
+
+    @db_error_default(int)
+    def get_track_status(self, media_id):
+        """Get the status of a shows track value in the Seasons table if it exists."""
+
+        self.q.execute("SELECT track FROM Seasons WHERE id = ?", (media_id,))
+
+        data = self.q.fetchone()
+        if data is not None:
+            return data[0]
+        else:
+            return None
 
     @db_error_default(int)
     def get_year(self, media_id):

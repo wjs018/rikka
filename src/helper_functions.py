@@ -129,13 +129,6 @@ def add_update_shows_by_id(
             )
             db.add_image(image, commit=True)
 
-        debug(
-            "Updating season and year in database to be {} {}".format(
-                raw_show.season, raw_show.year
-            )
-        )
-        db.add_season_year(raw_show.media_id, raw_show.season, raw_show.year)
-
     return len(raw_shows)
 
 
