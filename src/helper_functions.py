@@ -25,6 +25,11 @@ query ($page: Int, $id_in: [Int]) {
       }
       format
       source
+      season
+      seasonYear
+      startDate {
+        year
+      }
       synonyms
       isAdult
       status
@@ -124,6 +129,13 @@ def add_update_shows_by_id(
             )
             db.add_image(image, commit=True)
 
+        debug(
+            "Updating season and year in database to be {} {}".format(
+                raw_show.season, raw_show.year
+            )
+        )
+        db.add_season_year(raw_show.media_id, raw_show.season, raw_show.year)
+
     return len(raw_shows)
 
 
@@ -203,6 +215,14 @@ def _get_shows_info(page, show_ids, ratelimit=60):
         external_links_raw = show["externalLinks"]
         banner_image = show["bannerImage"]
         cover_image = show["coverImage"]["extraLarge"]
+        if not show["season"]:
+            season = "None"
+        else:
+            season = show["season"].capitalize()
+        if not show["seasonYear"]:
+            year = int(show["startDate"]["year"])
+        else:
+            year = int(show["seasonYear"])
 
         external_links = []
 
@@ -272,6 +292,8 @@ def _get_shows_info(page, show_ids, ratelimit=60):
             is_airing=status,
             external_links=external_links,
             images=images,
+            season=season,
+            year=year,
         )
 
         found_shows.append(raw_show)

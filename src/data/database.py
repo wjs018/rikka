@@ -163,6 +163,19 @@ class DatabaseDatabase:
         )
 
         self.q.execute(
+            """CREATE TABLE IF NOT EXISTS Seasons (
+            id              INTEGER NOT NULL,
+            season          TEXT NOT NULL,
+            year            INTEGER NOT NULL,
+            track           INTEGER NOT NULL DEFAULT 1,
+            has_episodes    INTEGER NOT NULL DEFAULT 0,
+            updated         INTEGER NOT NULL DEFAULT 0,
+            FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE,
+            UNIQUE(id) ON CONFLICT REPLACE
+        )"""
+        )
+
+        self.q.execute(
             """CREATE TABLE IF NOT EXISTS Episodes (
             id  		    INTEGER NOT NULL,
             episode		    INTEGER NOT NULL,
@@ -337,6 +350,8 @@ class DatabaseDatabase:
         show = Show(*show)
         show.aliases = self.get_aliases(show)
         show.external_links = self.get_external_links(show.id)
+        show.season = self.get_season(show.id)
+        show.year = self.get_year(show.id)
         return show
 
     @db_error_default(None)
@@ -467,6 +482,8 @@ class DatabaseDatabase:
             (show_type, has_source, is_nsfw, enabled, show_id),
         )
 
+        self.update_single_has_episodes(media_id=show_id)
+
         if commit:
             self._db.commit()
 
@@ -553,6 +570,215 @@ class DatabaseDatabase:
         if commit:
             self._db.commit()
 
+    # Seasons
+
+    @db_error
+    def add_season_year(
+        self, media_id, season, year, track=True, has_episodes=False, updated=False
+    ):
+        """Add the season and year to the Seasons table"""
+
+        self.q.execute(
+            "INSERT INTO Seasons (id, season, year, track, has_episodes, updated) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (media_id, season, year, int(track), int(has_episodes), int(updated)),
+        )
+        self._db.commit()
+
+    @db_error_default(int)
+    def get_year(self, media_id):
+        """Get the year for a given id."""
+
+        self.q.execute("SELECT year FROM Seasons WHERE id = ?", (media_id,))
+
+        data = self.q.fetchone()
+
+        if data is not None:
+            return int(data[0])
+        else:
+            return None
+
+    @db_error_default(str)
+    def get_season(self, media_id):
+        """Get the season for a given media id."""
+
+        self.q.execute("SELECT season FROM Seasons WHERE id = ?", (media_id,))
+
+        data = self.q.fetchone()
+
+        if data is not None:
+            return data[0]
+        else:
+            return None
+
+    @db_error
+    def set_updated(self, media_id, updated=True):
+        """Mark a show in the Seasons table as having had the episode list updated."""
+
+        self.q.execute(
+            "UPDATE Seasons SET updated = ? WHERE id = ?", (int(updated), media_id)
+        )
+        self._db.commit()
+
+    @db_error
+    def set_has_episodes(self, media_id, has_episodes=True):
+        """Mark a show as having episodes"""
+
+        self.q.execute(
+            "UPDATE Seasons SET has_episodes = ? WHERE id = ?",
+            (int(has_episodes), media_id),
+        )
+        self._db.commit()
+
+    @db_error
+    def set_tracking(self, media_id, track=True):
+        """Mark whether a show should be tracked for wiki-updating purposes."""
+
+        self.q.execute(
+            "UPDATE Seasons SET track = ? WHERE id = ?", (int(track), media_id)
+        )
+        self._db.commit()
+
+    @db_error_default(list())
+    def get_updated_shows(self):
+        """Fetch list of show ids that are marked as updated in the Seasons table."""
+
+        id_list = []
+
+        self.q.execute("SELECT id FROM Seasons WHERE updated = ?", (1,))
+
+        data = self.q.fetchall()
+        for show in data:
+            id_list.append(show[0])
+
+        return id_list
+
+    @db_error_default(dict())
+    def get_season_struct(self):
+        """Returns the contents of the Seasons table in a nested dict format."""
+
+        result = {}
+
+        self.q.execute("SELECT id, season, year FROM Seasons WHERE track = ?", (1,))
+
+        data = self.q.fetchall()
+        for show in data:
+            if show[2] not in result:
+                result[show[2]] = {show[1]: [show[0]]}
+            else:
+                if show[1] not in result[show[2]]:
+                    result[show[2]][show[1]] = [show[0]]
+                else:
+                    result[show[2]][show[1]].append(show[0])
+
+        return result
+
+    @db_error_default(list())
+    def get_seasons_with_episodes(self, track=True, has_episodes=True):
+        """
+        Returns list of all seasons that are tracked and have episodes from Seasons
+        table.
+        """
+
+        result = []
+
+        self.q.execute(
+            "SELECT DISTINCT season, year FROM Seasons WHERE track = ? AND "
+            "has_episodes = ?",
+            (int(track), int(has_episodes)),
+        )
+
+        data = self.q.fetchall()
+        for row in data:
+            result.append([row[0], row[1]])
+
+        return result
+
+    @db_error_default(list())
+    def get_shows_from_season(self, season, year, track=True, has_episodes=True):
+        """
+        Returns list of show ids from a specified season that are tracked and have
+        episodes.
+        """
+
+        result = []
+
+        self.q.execute(
+            "SELECT id FROM Seasons WHERE season = ? AND year = ? AND track = ? "
+            "AND has_episodes = ?",
+            (season, year, int(track), int(has_episodes)),
+        )
+
+        data = self.q.fetchall()
+        for row in data:
+            result.append(row[0])
+
+        return result
+
+    @db_error
+    def set_track_season(self, season, year, track):
+        """
+        Mark all shows in a given season and year whether to be tracked in Seasons
+        table.
+        """
+
+        self.q.execute(
+            "UPDATE Seasons SET track = ? WHERE season = ? AND year = ?",
+            (int(track), season, year),
+        )
+        self._db.commit()
+
+    @db_error
+    def set_season_updated(self, season, year, updated=False):
+        """
+        Mark all shows in a given season and year as updated (or not) in Seasons
+        table.
+        """
+
+        self.q.execute(
+            "UPDATE Seasons SET updated = ? WHERE season = ? AND year = ?",
+            (int(updated), season, year),
+        )
+        self._db.commit()
+
+    @db_error
+    def update_all_has_episodes(self):
+        """
+        Forces checking each show in the Seasons table to see if there are episodes in
+        the Episodes table corresponding to it.
+        """
+
+        id_list = []
+
+        self.q.execute("SELECT id FROM Seasons")
+
+        data = self.q.fetchall()
+        for row in data:
+            id_list.append(row[0])
+
+        for show in id_list:
+            self.q.execute("SELECT episode FROM Episodes WHERE id = ?", (show,))
+            data = self.q.fetchone()
+            if data is not None:
+                self.set_has_episodes(media_id=show, has_episodes=True)
+            else:
+                self.set_has_episodes(media_id=show, has_episodes=False)
+
+    @db_error
+    def update_single_has_episodes(self, media_id):
+        """
+        Updates a single show in the Seasons table to mark if there are episodes in the
+        Episodes table corresponding to it.
+        """
+
+        self.q.execute("SELECT episode FROM Episodes WHERE id = ?", (media_id,))
+
+        data = self.q.fetchone()
+        if data is not None:
+            self.set_has_episodes(media_id=media_id, has_episodes=True)
+        else:
+            self.set_has_episodes(media_id=media_id, has_episodes=False)
+
     # Episodes
 
     @db_error
@@ -587,6 +813,9 @@ class DatabaseDatabase:
             (show.id, episode_num, post_url, int(can_edit), creation_time),
         )
         self._db.commit()
+
+        self.set_has_episodes(media_id=media_id, has_episodes=True)
+        self.set_updated(media_id=media_id, updated=True)
 
     @db_error_default(None)
     def get_latest_episode(self, show: Show) -> Optional[Episode]:

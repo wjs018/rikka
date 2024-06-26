@@ -9,14 +9,14 @@ from logging import debug, error, exception, info, warning
 from logging.handlers import TimedRotatingFileHandler
 from time import time
 
-# Rikka imports
+# rikka imports
 import config as config_loader
 from data import database
 
 # Metadata
-name = "Rikka"
+name = "rikka"
 description = "episode discussion bot"
-version = "0.7.5"
+version = "0.8.0"
 
 
 def main(config, args, extra_args):
@@ -115,6 +115,12 @@ def main(config, args, extra_args):
 
             m.main(config, db, *extra_args)
 
+        elif config.module == "wiki":
+            debug("Outputting wiki files")
+            import module_wiki as m  # pylint: disable=import-outside-toplevel
+
+            m.main(config, db, *extra_args)
+
     except:
         exception("Unknown exception or error")
         db._db.rollback()
@@ -151,6 +157,7 @@ if __name__ == "__main__":
             "listen",
             "summary",
             "requestable",
+            "wiki",
         ],
         default=["episode"],
         help="runs the specified module",
