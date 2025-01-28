@@ -439,6 +439,7 @@ def _handle_episode_post(db, config, episode, ignore_engagement=False):
                 return False
 
             error("Current or more recent episode already exists")
+            db.remove_upcoming_episode(episode.media_id, episode.number)
             return False
 
     # Check if the show is disabled. If so, create the ignored episode
