@@ -536,12 +536,14 @@ def _create_standalone_post(db, config, episode):
         banner_image = db.get_banner_image(episode.media_id)
         if banner_image:
             url = banner_image.image_link
+            url += "?episode={}".format(episode.number)
         else:
             url = None
     elif config.submit_image == "cover":
         cover_image = db.get_cover_image(episode.media_id)
         if cover_image:
             url = cover_image.image_link
+            url += "?episode={}".format(episode.number)
         else:
             url = None
     else:
