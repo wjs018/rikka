@@ -247,7 +247,7 @@ The load module is used to add a set of artificially created upcoming episodes t
 Example contents of csv file:
 
 | media_id | number | airing_time |
-| :=: | :=: | :=: |
+| :-: | :-: | :-: |
 | 223 | 1 | 1743375600 |
 | 223 | 2 | 1743980400 |
 | 223 | 3 | 1744585200 |
