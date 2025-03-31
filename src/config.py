@@ -31,6 +31,7 @@ class Config:
 
         # options section
         self.debug = False
+        self.disable_api_airing = False
         self.ratelimit = 60
         self.new_show_types = list()
         self.countries = list()
@@ -122,6 +123,7 @@ def from_file(file_path):
         global api_call_times  # pylint: disable=global-statement
         api_call_times = deque(maxlen=config.ratelimit)
         config.debug = sec.getboolean("debug", False)
+        config.disable_api_airing = sec.getboolean("disable_api_airing", False)
         config.submit = sec.getboolean("submit", True)
         config.days = sec.getint("days", 7)
         config.episode_retention = sec.getint("episode_retention", 30)

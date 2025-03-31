@@ -92,19 +92,20 @@ def main(config, db, *args, **kwargs):
     lemmy.init_lemmy(config)
 
     if not manual_creation:
-        # Check for new upcoming episodes, populate UpcomingEpisodes table
-        info(
-            "Fetching all upcoming episodes from AniList for the next {} days.".format(
-                config.days
+        if not config.disable_api_airing:
+            # Check for new upcoming episodes, populate UpcomingEpisodes table
+            info(
+                "Fetching all upcoming episodes from AniList for the next {} days.".format(
+                    config.days
+                )
             )
-        )
-        result = _add_update_upcoming_episodes(db=db, config=config)
+            result = _add_update_upcoming_episodes(db=db, config=config)
 
-        info(
-            "Found {} upcoming episodes and discovered {} new shows".format(
-                result[0], result[1]
+            info(
+                "Found {} upcoming episodes and discovered {} new shows".format(
+                    result[0], result[1]
+                )
             )
-        )
 
         # Check for episodes in UpcomingEpisodes table that have air dates prior to
         # program runtime
