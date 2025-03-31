@@ -7,7 +7,9 @@ community = your_community
 username = your_username
 password = your_password
 # See https://github.com/db0/pythorhead/blob/main/pythorhead/types/language.py for list
-language_id = 37 # 37 = English
+# 37 = English
+language_id = 37 
+
 
 [options]
 # Enable debug logging, default false
