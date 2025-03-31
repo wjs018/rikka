@@ -12,6 +12,8 @@ language_id = 37 # 37 = English
 [options]
 # Enable debug logging, default false
 debug = false
+# Disable searching AniList for upcoming episodes
+disable_api_airing = false
 # Types of shows to auto-discover. possible options from AniList api include:
 # TV, TV_SHORT, MOVIE, SPECIAL, OVA, ONA, MUSIC
 # default: tv ona

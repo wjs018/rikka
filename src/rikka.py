@@ -16,7 +16,7 @@ from data import database
 # Metadata
 name = "rikka"
 description = "episode discussion bot"
-version = "0.8.1"
+version = "0.8.2"
 
 
 def main(config, args, extra_args):
@@ -121,6 +121,12 @@ def main(config, args, extra_args):
 
             m.main(config, db, *extra_args)
 
+        elif config.module == "load":
+            debug("Loading episodes from file")
+            import module_load as m  # pylint: disable=import-outside-toplevel
+
+            m.main(config, db, *extra_args)
+
     except:
         exception("Unknown exception or error")
         db._db.rollback()
@@ -158,6 +164,7 @@ if __name__ == "__main__":
             "summary",
             "requestable",
             "wiki",
+            "load",
         ],
         default=["episode"],
         help="runs the specified module",

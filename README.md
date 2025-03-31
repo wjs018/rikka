@@ -19,6 +19,7 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
   - [edit](https://github.com/wjs018/rikka?tab=readme-ov-file#the-edit-module)
   - [edit_holo](https://github.com/wjs018/rikka?tab=readme-ov-file#the-edit_holo-module)
   - [edit_season](https://github.com/wjs018/rikka?tab=readme-ov-file#the-edit_season-module)
+  - [load](https://github.com/wjs018/rikka?tab=readme-ov-file#the-load-module)
   - [episode](https://github.com/wjs018/rikka?tab=readme-ov-file#the-episode-module)
   - [user_thread](https://github.com/wjs018/rikka?tab=readme-ov-file#the-user_thread-module)
   - [listen](https://github.com/wjs018/rikka?tab=readme-ov-file#the-listen-module)
@@ -237,6 +238,26 @@ So, to load all the shows matching the discovery criteria from the Fall 2023 sea
 
 ```bash
 python src/rikka.py -m edit_season fall 2023
+```
+
+### The `load` Module
+
+The load module is used to add a set of artificially created upcoming episodes to the database by way of reading a csv file. The csv file needs to contain three columns of data and it assumes that there is a header row that is ignored. The three columns are the AniList id, the episode number, and the unix timestamp that the episode "airs". In this way, it is possible to essentially schedule airtimes for shows that are not actively airing and would not be present in the AniList api. One thing to note is that rikka will still delay posting by the number of minutes in the config file.
+
+Example contents of csv file:
+
+| media_id | number | airing_time |
+| :=: | :=: | :=: |
+| 223 | 1 | 1743375600 |
+| 223 | 2 | 1743980400 |
+| 223 | 3 | 1744585200 |
+
+Rikka schedules things using unix timestamps because that is how the AniList api works. To determine the proper timestamp to use in your csv file, you can use a converter [such as this one](https://www.unixtimestamp.com/).
+
+Example usage of the load module:
+
+```bash
+python src/rikka.py -m load episodes.csv
 ```
 
 ### The `episode` Module
