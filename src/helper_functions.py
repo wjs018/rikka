@@ -5,10 +5,13 @@ import requests
 
 from logging import debug, info, error
 from requests.exceptions import JSONDecodeError
+from string import Template
+
 from data.models import UnprocessedShow, ExternalLink, Image, str_to_showtype
 from config import min_ns, api_call_times
 
 URL = "https://graphql.anilist.co"
+KITSU_URL = "https://kitsu.io/api/graphql"
 
 paged_show_query = """
 query ($page: Int, $id_in: [Int]) {
@@ -47,6 +50,19 @@ query ($page: Int, $id_in: [Int]) {
   }
 }
 """
+
+kitsu_query = Template("query {${shows}}")
+kitsu_snippet = Template(
+    """
+    show_${id}: lookupMapping(externalId: ${id}, externalSite: ANILIST_ANIME) {
+      __typename
+      ... on Anime {
+        id
+        slug
+      }
+    }
+    """
+)
 
 
 def add_update_shows_by_id(
@@ -93,6 +109,13 @@ def add_update_shows_by_id(
             break
 
         page += 1
+
+    debug("Getting Kitsu links for shows")
+    kitsu_show_links = _get_kitsu_info(db, show_ids)
+
+    for raw_show in raw_shows:
+        if raw_show.media_id in kitsu_show_links:
+            raw_show.external_links[1:1] = [kitsu_show_links[raw_show.media_id]]
 
     if get_raw_shows:
         return raw_shows
@@ -292,6 +315,87 @@ def _get_shows_info(page, show_ids, ratelimit=60):
         found_shows.append(raw_show)
 
     return [has_next_page, found_shows]
+
+
+def _get_kitsu_info(db, show_ids):
+    """Get the kitsu information for a show."""
+
+    query = kitsu_query
+    shows_snippet = ""
+    kitsu_prefix = "https://kitsu.app/anime/"
+    returned_links = {}
+
+    if not isinstance(show_ids, list):
+        show_ids = [show_ids]
+
+    for show_id in show_ids:
+        snippet_template = kitsu_snippet
+        try:
+            snippet = snippet_template.substitute(id=show_id)
+        except ValueError:
+            error("Bad template substitution for kitsu api call")
+            snippet = ""
+            continue
+
+        shows_snippet += snippet
+
+    try:
+        query = query.substitute(shows=shows_snippet)
+    except ValueError:
+        error("Problem with template substitution for kitsu query")
+        return ""
+
+    attempts = 0
+
+    while attempts < 3:
+        attempts += 1
+        failed = False
+
+        try:
+            debug("Making request to kitsu for shows info")
+            response = requests.post(
+                KITSU_URL,
+                json={"query": query},
+                timeout=5.0,
+            )
+            response_test = response.json()
+            if "data" not in response_test:
+                error("Bad response from kitsu")
+                failed = True
+                continue
+        except:
+            error("Bad response from kitsu")
+            failed = True
+            continue
+
+    if failed and attempts == 3:
+        error("Persistent failed responses from kitsu")
+        return ""
+
+    for show_key in response_test["data"]:
+        media_id = int(show_key[5:])
+
+        try:
+            kitsu_slug = response_test["data"][show_key]["slug"]
+            kitsu_show_url = kitsu_prefix + kitsu_slug
+
+            kitsu_link = ExternalLink(
+                media_id=media_id,
+                link_type="Info",
+                site="Kitsu",
+                language="",
+                url=kitsu_show_url,
+            )
+
+            returned_links[media_id] = kitsu_link
+        except TypeError:
+            error(
+                "Problem parsing Kitsu response to add link. The show likely isn't "
+                "listed on Kitsu. AniList id: {}".format(media_id)
+            )
+            continue
+
+    return returned_links
 
 
 def check_if_exists(db, show_id):
