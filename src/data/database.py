@@ -21,6 +21,7 @@ from .models import (
     ExternalLink,
     Image,
     SummaryPost,
+    RelatedCommunity,
 )
 
 
@@ -271,6 +272,16 @@ class DatabaseDatabase:
             image_type      TEXT,
             image_link      TEXT,
             UNIQUE(id, image_type) ON CONFLICT REPLACE,
+            FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
+        )"""
+        )
+
+        self.q.execute(
+            """CREATE TABLE IF NOT EXISTS Communities (
+            id              INTEGER NOT NULL,
+            community       TEXT,
+            instance        TEXT,
+            UNIQUE(id, community, instance) ON CONFLICT REPLACE,
             FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
         )"""
         )
@@ -1458,3 +1469,51 @@ class DatabaseDatabase:
             media_id=media_id, image_type="cover", image_link=cover_link[0]
         )
         return cover_image
+
+    # Communities
+
+    @db_error
+    def add_community(self, community: RelatedCommunity, commit=True):
+        """Adds a related community to the database"""
+
+        debug("Adding related community {} to database".format(community))
+
+        self.q.execute(
+            "INSERT INTO Communities (id, community, instance) VALUES (?, ?, ?)",
+            (community.media_id, community.community, community.instance),
+        )
+
+        if commit:
+            self._db.commit()
+
+    @db_error
+    def remove_community(self, community: RelatedCommunity, commit=True):
+        """Removes a related community from the database"""
+
+        debug("Removing related community {} from the database".format(community))
+
+        self.q.execute(
+            "DELETE FROM Communities WHERE id = ? AND community = ? AND instance = ?",
+            (community.media_id, community.community, community.instance),
+        )
+
+        if commit:
+            self._db.commit()
+
+    @db_error_default(list)
+    def get_communities(self, media_id):
+        """Gets related communities for a given AniList id"""
+
+        debug("Fetching related communties for show with id {}".format(media_id))
+
+        communities = []
+
+        self.q.execute(
+            "SELECT id, community, instance FROM Communities WHERE id = ?", (media_id,)
+        )
+
+        for community in self.q.fetchall():
+            comm = RelatedCommunity(*community)
+            communities.append(comm)
+
+        return communities

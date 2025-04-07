@@ -256,3 +256,21 @@ class SummaryPost:
         self.pinned = int(pinned)
         self.creation_time = creation_time
         self.last_update = last_update
+
+
+class RelatedCommunity:
+    """Class used to define a related community"""
+
+    def __init__(self, media_id: int, community: str, instance: str):
+        self.media_id = media_id
+        self.community = community
+        self.instance = instance
+
+    def __str__(self):
+        return "{}@{}".format(self.community, self.instance)
+
+    def to_markdown(self):
+        """Generate the markdown for listing a related community"""
+        text = "- !{}@{}\n".format(self.community, self.instance)
+
+        return text

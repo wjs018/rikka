@@ -93,6 +93,8 @@ post_body =
 
     {banner}
 
+    {communities}
+
     {aliases}
 
     {links}
@@ -115,6 +117,8 @@ movie_post_body =
 
     {banner}
 
+    {communities}
+
     {aliases}
 
     {links}
@@ -128,6 +132,8 @@ movie_post_body =
 
 user_thread_comment = 
     *{show_name}* - episode {episode}
+
+    {communities}
 
     {links}
 
@@ -188,6 +194,8 @@ megathread_body =
     *{show_name}* Megathread {megathread_number}
 
     {banner}
+
+    {communities}
 
     {aliases}
 
