@@ -19,6 +19,7 @@ Anime episode discussion post bot for use with a [Lemmy](https://join-lemmy.org/
   - [edit](https://github.com/wjs018/rikka?tab=readme-ov-file#the-edit-module)
   - [edit_holo](https://github.com/wjs018/rikka?tab=readme-ov-file#the-edit_holo-module)
   - [edit_season](https://github.com/wjs018/rikka?tab=readme-ov-file#the-edit_season-module)
+  - [community](https://github.com/wjs018/rikka?tab=readme-ov-file#the-community-module)
   - [load](https://github.com/wjs018/rikka?tab=readme-ov-file#the-load-module)
   - [episode](https://github.com/wjs018/rikka?tab=readme-ov-file#the-episode-module)
   - [user_thread](https://github.com/wjs018/rikka?tab=readme-ov-file#the-user_thread-module)
@@ -240,6 +241,31 @@ So, to load all the shows matching the discovery criteria from the Fall 2023 sea
 python src/rikka.py -m edit_season fall 2023
 ```
 
+### The `community` Module
+
+The community module is used to add and removed related communities for a given show or movie. This can be used to provide lemmy-formatted links to other communities that are relevant for a show. For example, if there is a Dragon Ball related show that is having posts made for it by rikka, then it might be useful to have rikka include a link to the [dragonball@ani.social](https://ani.social/c/dragonball) community in the body of the post.
+
+Adding and removing related communities is done entirely manually through this module. So, no related communities will show up on posts by default. The `{communities}` placeholder in the post template will be replaced with a header and bulleted list of all the related communities for a show. In lemmy markdown syntax, it will look like this:
+
+```md
+## Related Communities
+
+- !community_one@instance.tld
+- !community_two@instance.tld
+```
+
+Adding and removing communities for a show is performed by this module. To add a community, you must run this module and provide four arguments: the `add` keyword, the AniList id, the community name, and the instance. To remove a community, it is the same four arguments, simply with `add` being replaced by `remove`. One note is that the community name is the part of the url of the community and can be different than the display name. So, using the Dragon Ball example from above (AniList id of 223):
+
+```bash
+# To add the community
+python src/rikka.py -m community add 223 dragonball ani.social
+
+# To remove the community
+python src/rikka.py -m community remove 223 dragonball ani.social
+```
+
+The community module will not allow duplicate entries of the same community. However, it will not throw any kind of error if you try to add a duplicate. So, feel free to add away if you fear you forgot. Similarly, removing a community that does not exist in the database will not throw an error. However, if you try to add or remove a community, and _the show itself_ isn't in the database, _then_ an error will be thrown.
+
 ### The `load` Module
 
 The load module is used to add a set of artificially created upcoming episodes to the database by way of reading a csv file. The csv file needs to contain three columns of data and it assumes that there is a header row that is ignored. The three columns are the AniList id, the episode number, and the unix timestamp that the episode "airs". In this way, it is possible to essentially schedule airtimes for shows that are not actively airing and would not be present in the AniList api. One thing to note is that rikka will still delay posting by the number of minutes in the config file.
@@ -247,10 +273,10 @@ The load module is used to add a set of artificially created upcoming episodes t
 Example contents of csv file:
 
 | media_id | number | airing_time |
-| :-: | :-: | :-: |
-| 223 | 1 | 1743375600 |
-| 223 | 2 | 1743980400 |
-| 223 | 3 | 1744585200 |
+| :------: | :----: | :---------: |
+|   223    |   1    | 1743375600  |
+|   223    |   2    | 1743980400  |
+|   223    |   3    | 1744585200  |
 
 Rikka schedules things using unix timestamps because that is how the AniList api works. To determine the proper timestamp to use in your csv file, you can use a converter [such as this one](https://www.unixtimestamp.com/).
 

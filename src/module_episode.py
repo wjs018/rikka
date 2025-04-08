@@ -832,6 +832,8 @@ def _format_post_text(config, db, aired_episode, text, **kwargs):
         text = safe_format(text, banner=_gen_text_banner(db, formats, show))
     if "{cover}" in text:
         text = safe_format(text, cover=_gen_text_cover(db, formats, show))
+    if "{communities}" in text:
+        text = safe_format(text, communities=_gen_text_communities(db, formats, show))
 
     text = safe_format(
         text,
@@ -923,3 +925,16 @@ def _gen_text_cover(db, formats, show):
         return ""
 
     return cover_image.to_markdown()
+
+
+def _gen_text_communities(db, formats, show):
+    comms = db.get_communities(show.id)
+    if not comms:
+        return ""
+
+    return_text = "## Related Communities\n\n"
+
+    for comm in comms:
+        return_text += comm.to_markdown()
+
+    return return_text

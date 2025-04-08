@@ -16,7 +16,7 @@ from data import database
 # Metadata
 name = "rikka"
 description = "episode discussion bot"
-version = "0.8.3"
+version = "0.9.0"
 
 
 def main(config, args, extra_args):
@@ -127,6 +127,12 @@ def main(config, args, extra_args):
 
             m.main(config, db, *extra_args)
 
+        elif config.module == "community":
+            debug("Running the community module")
+            import module_community as m  # pylint: disable=import-outside-toplevel
+
+            m.main(config, db, *extra_args)
+
     except:
         exception("Unknown exception or error")
         db._db.rollback()
@@ -165,6 +171,7 @@ if __name__ == "__main__":
             "requestable",
             "wiki",
             "load",
+            "community",
         ],
         default=["episode"],
         help="runs the specified module",
