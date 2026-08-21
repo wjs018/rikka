@@ -73,7 +73,7 @@ def main(config, db, *args, **kwargs):
         # Add show to the db if it doesn't exist
         if episode.media_id not in all_shows:
             debug("Adding show {} to database.".format(episode.media_id))
-            add_update_shows_by_id(db, [episode.media_id])
+            add_update_shows_by_id(config, db, [episode.media_id])
 
         # Enable the show if it isn't already
         if episode.media_id not in enabled_shows:

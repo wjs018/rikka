@@ -13,7 +13,7 @@ def main(config, db, *args, **kwargs):
 
     if len(args) == 1:
         info("Trying to add show with id {}".format(args[0]))
-        show = add_update_shows_by_id(db, [args[0]], ratelimit=config.ratelimit)
+        show = add_update_shows_by_id(config, db, [args[0]], ratelimit=config.ratelimit)
 
         if not show:
             error("Problem adding show with id {}".format(args[0]))

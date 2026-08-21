@@ -73,7 +73,7 @@ def main(config, db, *args, **kwargs):
 
     if not db_show:
         # Show doesn't exist in database, add it
-        added = add_update_shows_by_id(db, [anilist_id], config.ratelimit)
+        added = add_update_shows_by_id(config, db, [anilist_id], config.ratelimit)
 
         if not added:
             error("Could not add show to database")

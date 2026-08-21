@@ -9,6 +9,7 @@ password = your_password
 # See https://github.com/db0/pythorhead/blob/main/pythorhead/types/language.py for list
 # 37 = English
 language_id = 37 
+timeout = 30
 
 
 [options]
@@ -59,6 +60,9 @@ engagement_lag = 24
 # Should shows that don't meet engagement threshold be disabled instead of put into a
 # megathread? default of false
 disable_inactive = false
+# Timeouts for other, external services. These all default to 10 seconds if unspecified
+anilist_timeout = 10
+kitsu_timout = 10
 
 [post]
 title = {show_name} - Episode {episode} discussion

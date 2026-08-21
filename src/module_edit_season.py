@@ -93,7 +93,11 @@ def main(config, db, *args, **kwargs):
     info("{} shows found meeting criteria for the season".format(len(found_shows)))
 
     shows_added = add_update_shows_by_id(
-        db, enabled=config.discovery_enabled, show_ids=found_shows, ratelimit=ratelimit
+        config,
+        db,
+        enabled=config.discovery_enabled,
+        show_ids=found_shows,
+        ratelimit=ratelimit,
     )
 
     info("{} shows added to the database".format(shows_added))
@@ -148,7 +152,7 @@ def _get_season_shows(db, config, page, season, year, ratelimit=60):
         response = requests.post(
             URL,
             json={"query": paged_season_query, "variables": variables},
-            timeout=5.0,
+            timeout=config.anilist_timeout,
         )
     except:
         error("Bad response from request for airing times")

@@ -58,7 +58,9 @@ def main(config, db, *args, **kwargs):
                 for show in shows:
                     show_ids.append(show.id)
 
-                raw_shows = add_update_shows_by_id(db, show_ids, get_raw_shows=True)
+                raw_shows = add_update_shows_by_id(
+                    config, db, show_ids, get_raw_shows=True
+                )
 
                 for raw_show in raw_shows:
                     if not raw_show.is_airing:

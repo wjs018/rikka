@@ -17,11 +17,9 @@ from helper_functions import (
 )
 from data.models import (
     UpcomingEpisode,
-    str_to_showtype,
     Megathread,
     ShowType,
 )
-
 
 paged_airing_query = """
 query ($page: Int, $start: Int, $end: Int) {
@@ -126,7 +124,7 @@ def main(config, db, *args, **kwargs):
             db, config, episode, ignore_engagement=manual_creation
         )
 
-        if handled == True:
+        if handled:
             debug("Successfully processed episode, editing posts")
             show = db.get_show(episode.media_id)
             show_episodes = db.get_episodes(show)
@@ -236,10 +234,10 @@ def _add_update_upcoming_episodes(db, config):
     # Make the api calls, allowing up to three retries
     while True:
         response = _get_airing_schedule(
-            page, start, end, ratelimit=ratelimit, delay=delay
+            config, page, start, end, ratelimit=ratelimit, delay=delay
         )
 
-        if response == None:
+        if response is None:
             break
 
         if response == "bad response":
@@ -288,7 +286,7 @@ def _add_update_upcoming_episodes(db, config):
                 new_show_list.append(show["id"])
 
         added = add_update_shows_by_id(
-            db, new_show_list, enabled=config.discovery_enabled
+            config, db, new_show_list, enabled=config.discovery_enabled
         )
         new_shows += added
         if config.discovery_enabled:
@@ -306,12 +304,13 @@ def _add_update_upcoming_episodes(db, config):
     return [new_episodes, new_shows]
 
 
-def _get_airing_schedule(page, start, end, ratelimit=60, delay=60):
+def _get_airing_schedule(config, page, start, end, ratelimit=60, delay=60):
     """
     Queries the AniList api for episodes airing between the start and end times given.
     Also need to specify the page of results to return (up to 25 results per page)
 
         Parameters:
+            config          The config object
             page            The page of results to fetch from the api. Up to 25 results
                             per page.
             start           The timestamp that the airing time must be greater than to be
@@ -356,7 +355,7 @@ def _get_airing_schedule(page, start, end, ratelimit=60, delay=60):
         response = requests.post(
             URL,
             json={"query": paged_airing_query, "variables": variables},
-            timeout=5.0,
+            timeout=config.anilist_timeout,
         )
     except:
         error("Bad response from request for airing times")

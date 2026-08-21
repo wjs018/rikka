@@ -11,7 +11,7 @@ def main(config, db, *args, **kwargs):
     """Main function for the edit module"""
 
     if len(args) == 1:
-        if _edit_with_file(db, config.ratelimit, args[0]):
+        if _edit_with_file(config, args[0]):
             info("Edit successful; saving")
             db.save()
         else:
@@ -19,7 +19,7 @@ def main(config, db, *args, **kwargs):
             db.rollback()
 
 
-def _edit_with_file(db, ratelimit, edit_file):
+def _edit_with_file(config, db, edit_file):
     """Add shows to the database using a holo formatted yaml file."""
 
     info("Parsing yaml file {}".format(edit_file))
@@ -52,7 +52,7 @@ def _edit_with_file(db, ratelimit, edit_file):
 
         info("Found show with AniList id {}".format(anilist_id))
 
-    added_shows = add_update_shows_by_id(db, found_ids, ratelimit)
+    added_shows = add_update_shows_by_id(config, db, found_ids, config.ratelimit)
 
     if not added_shows:
         error("Problem adding shows from yaml file.")

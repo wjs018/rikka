@@ -47,6 +47,8 @@ class Config:
         self.min_comments = None
         self.engagement_lag = None
         self.disable_inactive = False
+        self.anilist_timeout = None
+        self.kitsu_timeout = None
 
         # lemmy section
         self.l_community = None
@@ -54,6 +56,7 @@ class Config:
         self.l_username = None
         self.l_password = None
         self.l_language_id = None
+        self.l_timeout = None
 
         # post section
         self.post_title = None
@@ -116,6 +119,7 @@ def from_file(file_path):
         config.l_username = sec.get("username", None)
         config.l_password = sec.get("password", None)
         config.l_language_id = sec.getint("language_id", None)
+        config.l_timeout = sec.getint("timeout", 30)
 
     if "options" in parsed:
         sec = parsed["options"]
@@ -135,6 +139,8 @@ def from_file(file_path):
         config.engagement_lag = sec.getint("engagement_lag", 24)
         config.disable_inactive = sec.getboolean("disable_inactive", False)
         config.overwrite_url = sec.getboolean("overwrite_url", False)
+        config.anilist_timeout = sec.getint("anilist_timeout", 10)
+        config.kitsu_timeout = sec.getint("kitsu_timeout", 10)
 
         config.submit_image = sec.get("submit_image", None)
         if config.submit_image not in ["banner", "cover"]:

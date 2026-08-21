@@ -21,7 +21,7 @@ def _connect_lemmy():
     if _config is None:
         error("Can't connect to lemmy without a config")
         return None
-    lemmy = Lemmy(_config.l_instance, request_timeout=5)
+    lemmy = Lemmy(_config.l_instance, request_timeout=_config.l_timeout)
     return lemmy if lemmy.log_in(_config.l_username, _config.l_password) else None
 
 

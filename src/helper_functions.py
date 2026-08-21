@@ -52,8 +52,7 @@ query ($page: Int, $id_in: [Int]) {
 """
 
 kitsu_query = Template("query {${shows}}")
-kitsu_snippet = Template(
-    """
+kitsu_snippet = Template("""
     show_${id}: lookupMapping(externalId: ${id}, externalSite: ANILIST_ANIME) {
       __typename
       ... on Anime {
@@ -61,12 +60,17 @@ kitsu_snippet = Template(
         slug
       }
     }
-    """
-)
+    """)
 
 
 def add_update_shows_by_id(
-    db, show_ids, ratelimit=60, enabled=True, ignore_enabled=False, get_raw_shows=False
+    config,
+    db,
+    show_ids,
+    ratelimit=60,
+    enabled=True,
+    ignore_enabled=False,
+    get_raw_shows=False,
 ):
     """
     Either adds shows in the given id list if it isn't already in the database, or
@@ -81,7 +85,7 @@ def add_update_shows_by_id(
     retries = {}
 
     while True:
-        response = _get_shows_info(page, show_ids, ratelimit)
+        response = _get_shows_info(config, page, show_ids, ratelimit)
 
         if response == None:
             break
@@ -111,7 +115,7 @@ def add_update_shows_by_id(
         page += 1
 
     debug("Getting Kitsu links for shows")
-    kitsu_show_links = _get_kitsu_info(db, show_ids)
+    kitsu_show_links = _get_kitsu_info(config, db, show_ids)
 
     for raw_show in raw_shows:
         if raw_show.media_id in kitsu_show_links:
@@ -155,7 +159,7 @@ def add_update_shows_by_id(
     return len(raw_shows)
 
 
-def _get_shows_info(page, show_ids, ratelimit=60):
+def _get_shows_info(config, page, show_ids, ratelimit=60):
     """
     Pulls media information from the AniList api.
 
@@ -192,7 +196,7 @@ def _get_shows_info(page, show_ids, ratelimit=60):
         response = requests.post(
             URL,
             json={"query": paged_show_query, "variables": variables},
-            timeout=5.0,
+            timeout=config.anilist_timeout,
         )
         response_test = response.json()
         if "data" not in response_test:
@@ -317,7 +321,7 @@ def _get_shows_info(page, show_ids, ratelimit=60):
     return [has_next_page, found_shows]
 
 
-def _get_kitsu_info(db, show_ids):
+def _get_kitsu_info(config, db, show_ids):
     """Get the kitsu information for a show."""
 
     query = kitsu_query
@@ -356,7 +360,7 @@ def _get_kitsu_info(db, show_ids):
             response = requests.post(
                 KITSU_URL,
                 json={"query": query},
-                timeout=5.0,
+                timeout=config.kitsu_timeout,
             )
             response_test = response.json()
             if "data" not in response_test:
