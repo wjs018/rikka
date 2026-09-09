@@ -356,6 +356,7 @@ def _get_airing_schedule(config, page, start, end, ratelimit=60, delay=60):
             URL,
             json={"query": paged_airing_query, "variables": variables},
             timeout=config.anilist_timeout,
+            headers={"User-Agent": config.user_agent},
         )
     except:
         error("Bad response from request for airing times")

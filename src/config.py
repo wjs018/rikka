@@ -49,6 +49,7 @@ class Config:
         self.disable_inactive = False
         self.anilist_timeout = None
         self.kitsu_timeout = None
+        self.user_agent = None
 
         # lemmy section
         self.l_community = None
@@ -141,6 +142,9 @@ def from_file(file_path):
         config.overwrite_url = sec.getboolean("overwrite_url", False)
         config.anilist_timeout = sec.getint("anilist_timeout", 10)
         config.kitsu_timeout = sec.getint("kitsu_timeout", 10)
+        config.user_agent = sec.get(
+            "user_agent", "rikka (+https://github.com/wjs018/rikka)"
+        )
 
         config.submit_image = sec.get("submit_image", None)
         if config.submit_image not in ["banner", "cover"]:

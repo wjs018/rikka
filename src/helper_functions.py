@@ -117,10 +117,6 @@ def add_update_shows_by_id(
     debug("Getting Kitsu links for shows")
     kitsu_show_links = _get_kitsu_info(config, db, show_ids)
 
-    for raw_show in raw_shows:
-        if raw_show.media_id in kitsu_show_links:
-            raw_show.external_links[1:1] = [kitsu_show_links[raw_show.media_id]]
-
     if get_raw_shows:
         return raw_shows
 
@@ -155,6 +151,17 @@ def add_update_shows_by_id(
                 )
             )
             db.add_image(image, commit=True)
+
+    # Handle kitsu links separately in case AniList API is down and there are no raw
+    # shows
+    for show_id in list(kitsu_show_links):
+        db_show = check_if_exists(db, show_id)
+        link = kitsu_show_links[show_id]
+
+        # Only add kitsu link if show already exists in db
+        if db_show:
+            debug("Adding link for show id {}: {}".format(show_id, link))
+            db.add_external_link(link, commit=True)
 
     return len(raw_shows)
 
@@ -197,6 +204,7 @@ def _get_shows_info(config, page, show_ids, ratelimit=60):
             URL,
             json={"query": paged_show_query, "variables": variables},
             timeout=config.anilist_timeout,
+            headers={"User-Agent": config.user_agent},
         )
         response_test = response.json()
         if "data" not in response_test:
@@ -361,6 +369,7 @@ def _get_kitsu_info(config, db, show_ids):
                 KITSU_URL,
                 json={"query": query},
                 timeout=config.kitsu_timeout,
+                headers={"User-Agent": config.user_agent},
             )
             response_test = response.json()
             if "data" not in response_test:

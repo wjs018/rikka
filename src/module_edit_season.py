@@ -153,6 +153,7 @@ def _get_season_shows(db, config, page, season, year, ratelimit=60):
             URL,
             json={"query": paged_season_query, "variables": variables},
             timeout=config.anilist_timeout,
+            headers={"User-Agent": config.user_agent},
         )
     except:
         error("Bad response from request for airing times")

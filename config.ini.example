@@ -63,6 +63,8 @@ disable_inactive = false
 # Timeouts for other, external services. These all default to 10 seconds if unspecified
 anilist_timeout = 10
 kitsu_timout = 10
+# Custom User-Agent header to provide to services
+user_agent = rikka (+https://github.com/wjs018/rikka)
 
 [post]
 title = {show_name} - Episode {episode} discussion
