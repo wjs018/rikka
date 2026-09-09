@@ -128,19 +128,16 @@ class DatabaseDatabase:
     def setup_tables(self):
         """Creates the tables and schema used by rikka."""
 
-        self.q.execute(
-            """CREATE TABLE IF NOT EXISTS ShowTypes (
+        self.q.execute("""CREATE TABLE IF NOT EXISTS ShowTypes (
             id		INTEGER NOT NULL PRIMARY KEY UNIQUE,
             key		TEXT NOT NULL
-        )"""
-        )
+        )""")
         self.q.executemany(
             "INSERT OR IGNORE INTO ShowTypes (id, key) VALUES (?, ?)",
             [(t.value, t.name.lower()) for t in ShowType],
         )
 
-        self.q.execute(
-            """CREATE TABLE IF NOT EXISTS Shows (
+        self.q.execute("""CREATE TABLE IF NOT EXISTS Shows (
             id		    INTEGER NOT NULL PRIMARY KEY UNIQUE,
             id_mal      INTEGER,
             name		TEXT NOT NULL,
@@ -151,20 +148,16 @@ class DatabaseDatabase:
             megathread  INTEGER NOT NULL DEFAULT 0,
             enabled		INTEGER NOT NULL DEFAULT 1,
             FOREIGN KEY(type) REFERENCES ShowTypes(id)
-        )"""
-        )
+        )""")
 
-        self.q.execute(
-            """CREATE TABLE IF NOT EXISTS Aliases (
+        self.q.execute("""CREATE TABLE IF NOT EXISTS Aliases (
             id		    INTEGER NOT NULL,
             alias		TEXT NOT NULL,
             FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE,
             UNIQUE(id, alias) ON CONFLICT IGNORE
-        )"""
-        )
+        )""")
 
-        self.q.execute(
-            """CREATE TABLE IF NOT EXISTS Seasons (
+        self.q.execute("""CREATE TABLE IF NOT EXISTS Seasons (
             id              INTEGER NOT NULL,
             season          TEXT NOT NULL,
             year            INTEGER NOT NULL,
@@ -173,11 +166,9 @@ class DatabaseDatabase:
             updated         INTEGER NOT NULL DEFAULT 0,
             FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE,
             UNIQUE(id) ON CONFLICT REPLACE
-        )"""
-        )
+        )""")
 
-        self.q.execute(
-            """CREATE TABLE IF NOT EXISTS Episodes (
+        self.q.execute("""CREATE TABLE IF NOT EXISTS Episodes (
             id  		    INTEGER NOT NULL,
             episode		    INTEGER NOT NULL,
             post_url	    TEXT,
@@ -185,11 +176,9 @@ class DatabaseDatabase:
             creation_time   INTEGER NOT NULL,
             UNIQUE(id, episode) ON CONFLICT REPLACE,
             FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
-        )"""
-        )
+        )""")
 
-        self.q.execute(
-            """CREATE TABLE IF NOT EXISTS UserEpisodes (
+        self.q.execute("""CREATE TABLE IF NOT EXISTS UserEpisodes (
             id              INTEGER NOT NULL,
             episode         INTEGER NOT NULL,
             post_url        text,
@@ -197,31 +186,25 @@ class DatabaseDatabase:
             creation_time   INTEGER NOT NULL,
             UNIQUE(id, episode) ON CONFLICT REPLACE,
             FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
-        )"""
-        )
+        )""")
 
-        self.q.execute(
-            """CREATE TABLE IF NOT EXISTS UpcomingEpisodes (
+        self.q.execute("""CREATE TABLE IF NOT EXISTS UpcomingEpisodes (
             id              INTEGER NOT NULL,
             episode         INTEGER NOT NULL,
             airing_time     INTEGER NOT NULL,
             UNIQUE(id, episode) ON CONFLICT REPLACE,
             FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
-        )"""
-        )
+        )""")
 
-        self.q.execute(
-            """CREATE TABLE IF NOT EXISTS IgnoredEpisodes (
+        self.q.execute("""CREATE TABLE IF NOT EXISTS IgnoredEpisodes (
             id              INTEGER NOT NULL,
             episode         INTEGER NOT NULL,
             airing_time     INTEGER NOT NULL,
             UNIQUE(id, episode) ON CONFLICT REPLACE,
             FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
-        )"""
-        )
+        )""")
 
-        self.q.execute(
-            """CREATE TABLE IF NOT EXISTS LatestEpisodes (
+        self.q.execute("""CREATE TABLE IF NOT EXISTS LatestEpisodes (
             id              INTEGER NOT NULL,
             episode         INTEGER NOT NULL,
             post_url        TEXT,
@@ -229,33 +212,27 @@ class DatabaseDatabase:
             creation_time   INTEGER NOT NULL,
             UNIQUE(id) ON CONFLICT REPLACE,
             FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
-        )"""
-        )
+        )""")
 
-        self.q.execute(
-            """CREATE TABLE IF NOT EXISTS SummaryPosts (
+        self.q.execute("""CREATE TABLE IF NOT EXISTS SummaryPosts (
             number          INTEGER NOT NULL,
             post_url        TEXT,
             pinned          INTEGER NOT NULL,
             creation_time   INTEGER NOT NULL,
             last_update     INTEGER NOT NULL,
             UNIQUE(number) ON CONFLICT REPLACE
-        )"""
-        )
+        )""")
 
-        self.q.execute(
-            """CREATE TABLE IF NOT EXISTS Megathreads (
+        self.q.execute("""CREATE TABLE IF NOT EXISTS Megathreads (
             id              INTEGER NOT NULL,
             thread_num      INTEGER NOT NULL,
             post_url        TEXT,
             num_episodes    INTEGER NOT NULL,
             UNIQUE(id, thread_num) ON CONFLICT REPLACE,
             FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
-        )"""
-        )
+        )""")
 
-        self.q.execute(
-            """CREATE TABLE IF NOT EXISTS Links (
+        self.q.execute("""CREATE TABLE IF NOT EXISTS Links (
             id              INTEGER NOT NULL,
             link_type       TEXT,
             site            TEXT,
@@ -263,28 +240,23 @@ class DatabaseDatabase:
             url             TEXT,
             UNIQUE(id, site, language) ON CONFLICT REPLACE,
             FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
-        )"""
-        )
+        )""")
 
-        self.q.execute(
-            """CREATE TABLE IF NOT EXISTS Images (
+        self.q.execute("""CREATE TABLE IF NOT EXISTS Images (
             id              INTEGER NOT NULL,
             image_type      TEXT,
             image_link      TEXT,
             UNIQUE(id, image_type) ON CONFLICT REPLACE,
             FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
-        )"""
-        )
+        )""")
 
-        self.q.execute(
-            """CREATE TABLE IF NOT EXISTS Communities (
+        self.q.execute("""CREATE TABLE IF NOT EXISTS Communities (
             id              INTEGER NOT NULL,
             community       TEXT,
             instance        TEXT,
             UNIQUE(id, community, instance) ON CONFLICT REPLACE,
             FOREIGN KEY(id) REFERENCES Shows(id) ON DELETE CASCADE
-        )"""
-        )
+        )""")
 
         self._db.commit()
 

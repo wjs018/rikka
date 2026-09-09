@@ -6,7 +6,6 @@ from logging import debug, info, error
 
 import lemmy
 
-
 error_message = (
     "There was a problem with the request. The following message was "
     "generated from your request. If this message is unhelpful and you need "
